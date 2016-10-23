@@ -34,14 +34,23 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.SSLContext;
 
-public class Connect implements ConnectionCompleted {
+public class Connect {
     public static void main(String[] args) {
-        Connect connect = new Connect();
         try {
             SSLContext context = NaiveSSLContext.getInstance("TLS");
-            JetConnection connection = new WebsocketJetConnection("wss://cjest-raspi", context);
+            JetConnection connection = new WebsocketJetConnection("wss://cjet-raspi", context);
             Peer peer = new JetPeer(connection);
-            peer.connect(connect, 20000);
+            peer.connect(new ConnectionCompleted() {
+                @Override
+                public void completed(boolean success) {
+                    if (success) {
+                        System.out.println("Connection completed!");
+                    } else {
+                        System.out.println("Connection failed!");
+                    }
+                }
+            },
+            5000);
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -53,12 +62,4 @@ public class Connect implements ConnectionCompleted {
         }
     }
 
-    @Override
-    public void completed(boolean success) {
-        if (success) {
-            System.out.println("Connection completed!");
-        } else {
-            System.out.println("Connection failed!");
-        }
-    }
 }
