@@ -27,6 +27,7 @@ import com.hbm.devices.jet.Peer;
 import com.hbm.devices.jet.JetPeer;
 import com.hbm.devices.jet.NaiveSSLContext;
 import com.hbm.devices.jet.WebsocketJetConnection;
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,10 +37,16 @@ public class Connect {
     public static void main(String[] args) {
         try {
             SSLContext context = NaiveSSLContext.getInstance("TLS");
-            JetConnection connection = new WebsocketJetConnection("wss://cjet-raspi", context);
+            JetConnection connection = new WebsocketJetConnection("wss://cjett-raspi", context);
             Peer peer = new JetPeer(connection);
             peer.connect(20000);
         } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        try {
+            System.in.read();
+        } catch (IOException ex) {
             Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
