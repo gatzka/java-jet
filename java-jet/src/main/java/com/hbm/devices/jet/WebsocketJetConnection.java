@@ -9,20 +9,23 @@ import javax.net.ssl.SSLContext;
 
 public class WebsocketJetConnection implements JetConnection {
 
-    private String url;
+    private final String url;
     private WebSocket ws;
     private SSLContext context;
+    private ConnectionCompleted completed;
 
-    public WebsocketJetConnection(String url, SSLContext sslContext) {
+    public WebsocketJetConnection(final String url, final SSLContext sslContext) {
         this(url);
         this.context = sslContext;
     }
-    public WebsocketJetConnection(String url) {
+    
+    public WebsocketJetConnection(final String url) {
         this.url = url;
     }
 
     @Override
-    public void connect(int timeoutMs) {
+    public void connect(final ConnectionCompleted completed, int timeoutMs) {
+        this.completed = completed;
         try {
             WebSocketFactory factory = new WebSocketFactory();
 
@@ -30,12 +33,16 @@ public class WebsocketJetConnection implements JetConnection {
                 factory.setSSLContext(context);
             }
             ws = factory.createSocket(url, timeoutMs);
-            WebsocketCallbackListener listener = new WebsocketCallbackListener();
+            WebsocketCallbackListener listener = new WebsocketCallbackListener(this);
             ws.addListener(listener);
             ws.addProtocol("jet");
             ws.connectAsynchronously();
         } catch (IOException ex) {
             Logger.getLogger(WebsocketJetConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    void connectCompleted(boolean success) {
+        this.completed.completed(success);
     }
 }

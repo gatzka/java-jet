@@ -9,7 +9,7 @@ public class JetPeer implements Peer {
 	}
 
 	@Override
-	public void connect(int timeoutMs) {
-		this.connection.connect(timeoutMs);
+	public void connect(ConnectionCompleted connectionCompleted, int timeoutMs) {
+		this.connection.connect(connectionCompleted, timeoutMs);
 	}
 }

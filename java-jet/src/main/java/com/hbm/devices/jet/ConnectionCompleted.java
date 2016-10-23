@@ -21,35 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package com.hbm.devices.jet;
 
-import com.neovisionaries.ws.client.WebSocket;
-import com.neovisionaries.ws.client.WebSocketAdapter;
-import com.neovisionaries.ws.client.WebSocketException;
-import java.util.List;
-import java.util.Map;
-
-/**
- *
- * @author gatzka
- */
-class WebsocketCallbackListener extends WebSocketAdapter {
-    
-    private final WebsocketJetConnection connection;
-    
-    WebsocketCallbackListener(WebsocketJetConnection connection) {
-        this.connection = connection;
-    }
-    
-    @Override
-    public void onConnected(WebSocket websocket, Map<String, List<String>> headers) throws Exception {
-        connection.connectCompleted(true);
-    }
-
-    @Override
-    public void onConnectError(WebSocket websocket, WebSocketException exception) throws Exception
-    {
-        connection.connectCompleted(false);
-    }
+public interface ConnectionCompleted {
+    public void completed(boolean success);
 }
