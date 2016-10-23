@@ -1,6 +1,6 @@
 # A Java [jet peer](http://jetbus.io/).
 
-[![Build Status](https://travis-ci.org/HBM/java-jet.svg?branch=master)](https://travis-ci.org/HBM/java-jet)
+[![Build Status](https://travis-ci.org/gatzka/java-jet.svg?branch=master)](https://travis-ci.org/gatzka/java-jet)
 
 
 ## About
