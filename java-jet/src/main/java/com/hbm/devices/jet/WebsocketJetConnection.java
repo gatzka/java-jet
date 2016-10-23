@@ -1,7 +1,6 @@
 package com.hbm.devices.jet;
 
 import com.neovisionaries.ws.client.WebSocket;
-import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -26,14 +25,15 @@ public class WebsocketJetConnection implements JetConnection {
     public void connect(int timeoutMs) {
         try {
             WebSocketFactory factory = new WebSocketFactory();
+
             if (context != null) {
                 factory.setSSLContext(context);
             }
             ws = factory.createSocket(url, timeoutMs);
+            WebsocketCallbackListener listener = new WebsocketCallbackListener();
+            ws.addListener(listener);
             ws.addProtocol("jet");
-            ws.connect();
-        } catch (WebSocketException ex) {
-            Logger.getLogger(WebsocketJetConnection.class.getName()).log(Level.SEVERE, null, ex);
+            ws.connectAsynchronously();
         } catch (IOException ex) {
             Logger.getLogger(WebsocketJetConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
