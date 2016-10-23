@@ -16,7 +16,7 @@ env:
 addons:
   coverity_scan:
     project:
-      name: HBM/java-jet
+      name: gatzka/java-jet
       description: Build submitted via Travis CI
     notification_email: stephan.gatzka@gmail.com
     build_command_prepend: "./gradlew clean"
