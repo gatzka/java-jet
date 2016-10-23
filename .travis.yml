@@ -1,0 +1,18 @@
+language: java
+sudo: false
+branches:
+  except:
+  - /^feature.*$/
+
+jdk:
+- oraclejdk8
+
+addons:
+  coverity_scan:
+    project:
+      name: HBM/java-jet
+      description: Build submitted via Travis CI
+    notification_email: stephan.gatzka@gmail.com
+    build_command_prepend: "./gradlew clean"
+    build_command: "./gradlew compileJava"
+    branch_pattern: coverity_scan
