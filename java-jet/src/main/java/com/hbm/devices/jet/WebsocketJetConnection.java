@@ -23,13 +23,13 @@ public class WebsocketJetConnection implements JetConnection {
     }
 
     @Override
-    public void connect(double timeoutMs) {
+    public void connect(int timeoutMs) {
         try {
             WebSocketFactory factory = new WebSocketFactory();
             if (context != null) {
                 factory.setSSLContext(context);
             }
-            ws = factory.createSocket(url);
+            ws = factory.createSocket(url, timeoutMs);
             ws.addProtocol("jet");
             ws.connect();
         } catch (WebSocketException ex) {
