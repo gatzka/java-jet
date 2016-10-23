@@ -1,0 +1,21 @@
+apply plugin: 'application'
+apply plugin: 'java'
+ 
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile project(':java-jet')
+}
+
+mainClassName = 'Connect'
+
+jar {
+  manifest {
+    attributes(
+      'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+      'Main-Class': mainClassName
+    )
+  }
+}
