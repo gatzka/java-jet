@@ -1,5 +1,8 @@
 # A Java [jet peer](http://jetbus.io/).
 
+[![Build Status](https://travis-ci.org/HBM/java-jet.svg?branch=master)](https://travis-ci.org/HBM/java-jet)
+
+
 ## About
 This library implements the Jet protocol in  Java. The
 library is 100 % pure Java and fully compatible with Android.
