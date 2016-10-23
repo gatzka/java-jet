@@ -1,5 +1,14 @@
 version = '0.0.1'
 
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'jacoco'
+
+    repositories {
+        jcenter()
+    }
+}
+
 task createWrapper(type: Wrapper) {
 	gradleVersion = '3.1'
 }

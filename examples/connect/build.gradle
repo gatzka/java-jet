@@ -1,9 +1,4 @@
 apply plugin: 'application'
-apply plugin: 'java'
- 
-repositories {
-    jcenter()
-}
 
 dependencies {
     compile project(':java-jet')
