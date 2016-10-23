@@ -1,3 +1,5 @@
 /.nb-gradle/
+/.gradle/
+/.nb-gradle-properties
 /java-jet/build/
 /examples/connect/build/
