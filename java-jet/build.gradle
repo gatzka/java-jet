@@ -1,5 +1,28 @@
+description 'A Java library to communicate via Jet protocol.'
+group = 'com.hbm'
+
+project.version = getRootProject().version
+
+processResources {
+    expand projectVersion: project.version
+}
+
 dependencies {
 	compile 'com.google.code.gson:gson:2.7'
 	compile 'com.neovisionaries:nv-websocket-client:1.30'
     testCompile 'junit:junit:4.12'
 }
+
+jar {
+    archiveName = jar.baseName + '.' + jar.extension
+    manifest {
+        attributes \
+            'Implementation-Title': 'HBM Jet Library', \
+            'Implementation-Version': version, \
+            'Implementation-Vendor': 'Hottinger Baldwin Messtechnik GmbH', \
+            'Built-By': System.getProperty('user.name'), \
+            'Built-JDK': System.getProperty('java.version'), \
+            'Build-Time': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+    }
+}
+

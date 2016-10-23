@@ -1,5 +1,43 @@
 version = '0.0.1'
 
+ext {
+    isReleaseBuild = false
+}
+
+def getBuildSuffix() {
+  return 'git rev-list HEAD --count'.execute().text.trim()
+}
+
+def isDirty() {
+    def dirty = 'git diff --shortstat'.execute().text.trim()
+    if (dirty == "") {
+        return false
+    } else {
+        return true;
+    }
+}
+
+def isRelease() {
+    def getRelease = "git describe --exact-match --tags HEAD".execute()
+    getRelease.waitFor()
+    if (getRelease.exitValue() == 0) {
+        return true
+    } else {
+        return false
+    }
+}
+//set build variables based on build type (release, continuous integration, development)
+
+ext.isReleaseBuild = isRelease()
+
+if (!ext.isReleaseBuild) {
+    version = version + "-" + getBuildSuffix()
+}
+
+if (isDirty()) {
+    version = version + "+dirty"
+}
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'jacoco'
