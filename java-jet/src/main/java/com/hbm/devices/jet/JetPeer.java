@@ -12,4 +12,9 @@ public class JetPeer implements Peer {
 	public void connect(ConnectionCompleted connectionCompleted, int timeoutMs) {
 		this.connection.connect(connectionCompleted, timeoutMs);
 	}
+
+	@Override
+    public void disconnect() {
+        this.connection.disconnect();
+    }
 }

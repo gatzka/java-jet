@@ -1,6 +1,7 @@
 package com.hbm.devices.jet;
 
 import com.neovisionaries.ws.client.WebSocket;
+import com.neovisionaries.ws.client.WebSocketCloseCode;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -40,6 +41,11 @@ public class WebsocketJetConnection implements JetConnection {
         } catch (IOException ex) {
             Logger.getLogger(WebsocketJetConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    @Override
+    public void disconnect() {
+        ws.disconnect(WebSocketCloseCode.AWAY, "Closing Java-Jet-Peer");
     }
     
     void connectCompleted(boolean success) {
