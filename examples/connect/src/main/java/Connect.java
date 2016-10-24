@@ -38,7 +38,7 @@ public class Connect {
     public static void main(String[] args) {
         try {
             SSLContext context = NaiveSSLContext.getInstance("TLS");
-            JetConnection connection = new WebsocketJetConnection("wss://cjet-raspi", context);
+            JetConnection connection = new WebsocketJetConnection("ws://cjet-raspi", context);
             Peer peer = new JetPeer(connection);
             peer.connect(new ConnectionCompleted() {
                 @Override
@@ -51,15 +51,15 @@ public class Connect {
                 }
             },
             5000);
+
+            try {
+                System.in.read();
+            } catch (IOException ex) {
+                Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            peer.disconnect();
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        try {
-            System.in.read();
-        } catch (IOException ex) {
-            Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
-
 }
