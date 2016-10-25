@@ -24,8 +24,41 @@
 
 package com.hbm.devices.jet;
 
-public interface Peer {
-	public void connect(ConnectionCompleted connectionCompleted, int timeoutMs);
-    public void disconnect();
-    public FetchId fetch(Matcher matcher, FetchEventCallback callback, ResponseCallback responseCallback, int timeoutMs);
+import java.util.concurrent.atomic.AtomicInteger;
+
+public class FetchId {
+
+    private static AtomicInteger fetchIdCounter;
+
+    private int fetchId;
+
+    public FetchId() {
+        fetchId = fetchIdCounter.incrementAndGet();
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.toString(fetchId).hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof FetchId)) {
+            return false;
+        }
+
+        if (obj == this) {
+            return true;
+        }
+
+        FetchId rhs = (FetchId)obj;
+
+        return rhs.fetchId == this.fetchId;
+    }
+
+    @Override
+    public String toString() {
+        return Integer.toString(fetchId);
+    }
 }
+

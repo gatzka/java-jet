@@ -24,8 +24,13 @@
 
 package com.hbm.devices.jet;
 
-public interface Peer {
-	public void connect(ConnectionCompleted connectionCompleted, int timeoutMs);
-    public void disconnect();
-    public FetchId fetch(Matcher matcher, FetchEventCallback callback, ResponseCallback responseCallback, int timeoutMs);
+public class Matcher {
+    public String contains;
+    public String[] containsAllOf;
+    public String startsWith;
+    public String endsWith;
+    public String equals;
+    public String equalsNot;
+    public boolean caseInsensitive;
 }
+

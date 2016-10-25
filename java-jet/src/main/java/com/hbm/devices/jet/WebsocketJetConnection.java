@@ -47,6 +47,11 @@ public class WebsocketJetConnection implements JetConnection {
     public void disconnect() {
         ws.disconnect(WebSocketCloseCode.AWAY, "Closing Java-Jet-Peer");
     }
+
+    @Override
+    public void sendMessage(String message) {
+        ws.sendText(message);
+    }
     
     void connectCompleted(boolean success) {
         this.completed.completed(success);
