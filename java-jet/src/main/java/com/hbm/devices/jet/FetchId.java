@@ -28,12 +28,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class FetchId {
 
-    private static AtomicInteger fetchIdCounter;
+    private static AtomicInteger fetchIdCounter = new AtomicInteger();;
 
     private int fetchId;
 
     public FetchId() {
-        fetchId = fetchIdCounter.incrementAndGet();
+        this.fetchId = fetchIdCounter.incrementAndGet();
     }
 
     @Override

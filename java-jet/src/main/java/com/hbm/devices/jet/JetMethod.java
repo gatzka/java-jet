@@ -38,7 +38,7 @@ class JetMethod {
     static final String REMOVE = "remove";
     static final String CHANGE = "change";
 
-    private static AtomicInteger requestIdCounter;
+    private static AtomicInteger requestIdCounter = new AtomicInteger();;
 
     private final ResponseCallback responseCallback;
     private int requestId;
@@ -71,5 +71,11 @@ class JetMethod {
 
     JsonObject getJson() {
         return json;
+    }
+
+    void callResponseCallback(boolean completed, JsonObject response) {
+        if (hasResponseCallback()) {
+            responseCallback.onResponse(completed, response);
+        }
     }
 }

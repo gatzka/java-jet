@@ -1,0 +1,29 @@
+apply plugin: 'application'
+
+description 'An example to use the devscan library for receiving announce messages.'
+project.version = getRootProject().version
+mainClassName = 'Fetch'
+
+dependencies {
+    compile project(':java-jet')
+}
+
+processResources {
+    expand projectVersion: project.version
+}
+
+jar {
+    archiveName = jar.baseName + '.' + jar.extension
+    from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    manifest {
+        attributes(
+            'Implementation-Title': 'HBM Jet fetch example', \
+            'Implementation-Version': version, \
+            'Implementation-Vendor': 'Hottinger Baldwin Messtechnik GmbH', \
+            'Built-By': System.getProperty('user.name'), \
+            'Built-JDK': System.getProperty('java.version'), \
+            'Build-Time': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"), \
+            'Main-Class': mainClassName
+        )
+    }
+}

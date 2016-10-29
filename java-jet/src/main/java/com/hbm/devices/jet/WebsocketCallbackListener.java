@@ -27,6 +27,7 @@ package com.hbm.devices.jet;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketException;
+import com.neovisionaries.ws.client.WebSocketFrame;
 import java.util.List;
 import java.util.Map;
 
@@ -51,5 +52,10 @@ class WebsocketCallbackListener extends WebSocketAdapter {
     public void onConnectError(WebSocket websocket, WebSocketException exception) throws Exception
     {
         connection.connectCompleted(false);
+    }
+
+    @Override
+    public void onTextMessage(WebSocket webSocket, String text) throws Exception {
+        connection.onTextMessage(text);
     }
 }

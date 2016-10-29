@@ -24,8 +24,7 @@
 
 package com.hbm.devices.jet;
 
-import com.google.gson.JsonObject;
+public interface StateCallback {
 
-public interface FetchEventCallback {
-    public void onFetchEvent(JsonObject params);
 }
+
