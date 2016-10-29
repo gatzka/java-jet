@@ -3,12 +3,14 @@ package com.hbm.devices.jet;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketCloseCode;
 import com.neovisionaries.ws.client.WebSocketFactory;
+
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.Observable;
 import javax.net.ssl.SSLContext;
 
-public class WebsocketJetConnection implements JetConnection {
+public class WebsocketJetConnection extends JetConnection {
 
     private final String url;
     private WebSocket ws;
@@ -55,5 +57,10 @@ public class WebsocketJetConnection implements JetConnection {
     
     void connectCompleted(boolean success) {
         this.completed.completed(success);
+    }
+
+    void onTextMessage(String text) {
+        setChanged();
+        notifyObservers(text);
     }
 }

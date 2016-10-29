@@ -24,8 +24,12 @@
 
 package com.hbm.devices.jet;
 
-import com.google.gson.JsonObject;
+public final class JetConstants {
 
-public interface FetchEventCallback {
-    public void onFetchEvent(JsonObject params);
+    public static final String LOGGER_NAME = "jet";
+
+    private JetConstants() {
+    }
+
 }
+

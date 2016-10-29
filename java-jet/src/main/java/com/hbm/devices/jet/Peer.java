@@ -24,8 +24,14 @@
 
 package com.hbm.devices.jet;
 
+import com.google.gson.JsonElement;
+
 public interface Peer {
-	public void connect(ConnectionCompleted connectionCompleted, int timeoutMs);
+	public void connect(ConnectionCompleted connectionCompleted, int responseTimeoutMs);
     public void disconnect();
-    public FetchId fetch(Matcher matcher, FetchEventCallback callback, ResponseCallback responseCallback, int timeoutMs);
+    public FetchId fetch(Matcher matcher, FetchEventCallback callback, ResponseCallback responseCallback, int responseTimeoutMs);
+    public void unfetch(FetchId id, ResponseCallback responseCallback, int responseTimeoutMs);
+    public void set(String path, JsonElement value, ResponseCallback responseCallback, int responseTimeoutMs);
+    public void addState(String path, JsonElement value, ResponseCallback responseCallback, StateCallback stateCallback, int responseTimeoutMs, int stateSetTimeoutMs);
+    public void removeState(String path, ResponseCallback responseCallback, int responseTimeoutMs);
 }

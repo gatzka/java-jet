@@ -24,6 +24,8 @@
 
 package com.hbm.devices.jet;
 
-public class ResponseCallback {
+import com.google.gson.JsonObject;
 
+public interface ResponseCallback {
+    void onResponse(boolean completed, JsonObject response);
 }

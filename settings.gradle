@@ -18,4 +18,6 @@ include 'services:webservice'
 
 include 'java-jet'
 include 'examples/connect'
+include 'examples/fetch'
+include 'examples/set'
 
