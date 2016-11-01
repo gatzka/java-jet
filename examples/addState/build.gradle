@@ -1,8 +1,8 @@
 apply plugin: 'application'
 
-description 'An example to use the jet library for connecting to jet.'
+description 'An example to use the jet library for adding a state.'
 project.version = getRootProject().version
-mainClassName = 'Connect'
+mainClassName = 'AddState'
 
 dependencies {
     compile project(':java-jet')
@@ -17,7 +17,7 @@ jar {
     from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
     manifest {
         attributes(
-            'Implementation-Title': 'HBM Jet connect example', \
+            'Implementation-Title': 'HBM Jet add state example', \
             'Implementation-Version': version, \
             'Implementation-Vendor': 'Hottinger Baldwin Messtechnik GmbH', \
             'Built-By': System.getProperty('user.name'), \

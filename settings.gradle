@@ -16,8 +16,9 @@ include 'api'
 include 'services:webservice'
 */
 
-include 'java-jet'
+include 'examples/addState'
 include 'examples/connect'
 include 'examples/fetch'
 include 'examples/set'
+include 'java-jet'
 
