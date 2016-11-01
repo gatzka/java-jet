@@ -2,6 +2,7 @@
 /.gradle/
 /.nb-gradle-properties
 /java-jet/build/
+/examples/addState/build/
 /examples/connect/build/
 /examples/fetch/build/
 /examples/set/build/
