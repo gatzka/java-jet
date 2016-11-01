@@ -24,9 +24,14 @@
 package com.hbm.devices.jet;
 
 import com.google.gson.JsonElement;
+import java.io.Closeable;
+import java.io.IOException;
 
-public interface Peer {
+public interface Peer extends Closeable {
 
+    @Override
+    public void close() throws IOException;
+    
     public void connect(ConnectionCompleted connectionCompleted, int responseTimeoutMs);
 
     public void disconnect();

@@ -24,6 +24,7 @@
 package com.hbm.devices.jet;
 
 import com.google.gson.JsonObject;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class JetMethod {
@@ -37,28 +38,26 @@ class JetMethod {
     static final String REMOVE = "remove";
     static final String CHANGE = "change";
 
-    private static AtomicInteger requestIdCounter = new AtomicInteger();
-    ;
+    private static final AtomicInteger REQUEST_ID_ROUNTER = new AtomicInteger();
 
     private final ResponseCallback responseCallback;
     private int requestId;
     private final JsonObject json;
+    private ScheduledFuture<Void> future;
 
     JetMethod(final String method, JsonObject parameters, ResponseCallback responseCallback) {
         this.responseCallback = responseCallback;
-        JsonObject json = new JsonObject();
-        json.addProperty("jsonrpc", "2.0");
-        json.addProperty("method", method);
+        this.json = new JsonObject();
+        this.json.addProperty("jsonrpc", "2.0");
+        this.json.addProperty("method", method);
         if (responseCallback != null) {
-            this.requestId = requestIdCounter.incrementAndGet();;
-            json.addProperty("id", this.requestId);
+            this.requestId = REQUEST_ID_ROUNTER.incrementAndGet();
+            this.json.addProperty("id", this.requestId);
         }
 
         if (parameters != null) {
-            json.add("params", parameters);
+            this.json.add("params", parameters);
         }
-
-        this.json = json;
     }
 
     boolean hasResponseCallback() {
@@ -73,6 +72,14 @@ class JetMethod {
         return json;
     }
 
+    void addFuture(ScheduledFuture<Void> future) {
+        this.future = future;
+    }
+    
+    ScheduledFuture<Void> getFuture() {
+        return this.future;
+    }
+    
     void callResponseCallback(boolean completed, JsonObject response) {
         if (hasResponseCallback()) {
             responseCallback.onResponse(completed, response);
