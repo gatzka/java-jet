@@ -23,6 +23,8 @@
  */
 package com.hbm.devices.jet;
 
-public interface StateCallback {
+import com.google.gson.JsonElement;
 
+public interface StateCallback {
+    public JsonElement onStateSet(String path, JsonElement value);
 }
