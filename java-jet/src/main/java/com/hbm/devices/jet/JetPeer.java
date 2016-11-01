@@ -72,13 +72,13 @@ public class JetPeer implements Peer, Observer {
 
     @Override
     public void set(String path, JsonElement value, ResponseCallback responseCallback, int timeoutMs) {
-        if (path == null) {
-            throw new NullPointerException("path");
+        if ((path == null) || (path.length() == 0)) {
+            throw new IllegalArgumentException("path");
         }
 
         synchronized (stateCallbacks) {
             if (stateCallbacks.containsKey(path)) {
-                throw new IllegalArgumentException("Don't call Set() on a state you own, use Change() instead!");
+                throw new IllegalArgumentException("Don't call set() on a state you own, use change() instead!");
             }
         }
 
@@ -92,8 +92,8 @@ public class JetPeer implements Peer, Observer {
 
     @Override
     public void addState(String path, JsonElement value, StateCallback stateCallback, int stateSetTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs) {
-        if (path == null) {
-            throw new NullPointerException("path");
+        if ((path == null) || (path.length() == 0)) {
+            throw new IllegalArgumentException("path");
         }
 
         JsonObject parameters = new JsonObject();
@@ -112,8 +112,8 @@ public class JetPeer implements Peer, Observer {
 
     @Override
     public void removeState(String path, ResponseCallback responseCallback, int responseTimeoutMs) {
-        if (path == null) {
-            throw new NullPointerException("path");
+        if ((path == null) || (path.length() == 0)) {
+            throw new IllegalArgumentException("path");
         }
 
         unregisterStateCallback(path);
@@ -122,6 +122,25 @@ public class JetPeer implements Peer, Observer {
         parameters.addProperty("path", path);
         JetMethod remove = new JetMethod(JetMethod.REMOVE, parameters, responseCallback);
         this.executeMethod(remove, responseTimeoutMs);
+    }
+
+    @Override
+    public void change(String path, JsonElement value, ResponseCallback responseCallback, int responseTimeoutMs) {
+        if ((path == null) || (path.length() == 0)) {
+            throw new IllegalArgumentException("path");
+        }
+        
+        synchronized (stateCallbacks) {
+            if (!stateCallbacks.containsKey(path)) {
+                throw new IllegalArgumentException("don't call change() on a state you do not own");
+            }
+        }
+        
+        JsonObject parameters = new JsonObject();
+        parameters.addProperty("path", path);
+        parameters.add("value", value);
+        JetMethod change = new JetMethod(JetMethod.CHANGE, parameters, responseCallback);
+        this.executeMethod(change, responseTimeoutMs);
     }
 
     @Override
@@ -232,6 +251,7 @@ public class JetPeer implements Peer, Observer {
         }
     }
 
+    @Override
     public void update(Observable observable, Object obj) {
         try {
             JsonElement element = parser.parse((String) obj);
@@ -326,9 +346,7 @@ public class JetPeer implements Peer, Observer {
             }
             
             boolean stateHandled = handleStateCallback(object, path);
-            if (stateHandled) {
-                return;
-            } else {
+            if (!stateHandled) {
                 handleMethod(object, path);
             }
         } catch (JsonRpcException e) {
