@@ -17,6 +17,7 @@ include 'services:webservice'
 */
 
 include 'examples/addState'
+include 'examples/change'
 include 'examples/connect'
 include 'examples/fetch'
 include 'examples/set'
