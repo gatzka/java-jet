@@ -31,42 +31,65 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class JetPeer implements Peer, Observer {
+public class JetPeer implements Peer, Observer, Closeable {
 
     private final JetConnection connection;
     private final Map<Integer, FetchEventCallback> openFetches;
     private final Map<Integer, JetMethod> openRequests;
     private final Map<String, StateCallback> stateCallbacks;
-    ;
     private final Gson gson;
     private final JsonParser parser;
+    private final ScheduledThreadPoolExecutor executor;
 
     private static final Logger LOGGER = Logger.getLogger(JetConstants.LOGGER_NAME);
 
     public JetPeer(JetConnection connection) {
+        this.executor = new ScheduledThreadPoolExecutor(1);
         this.connection = connection;
-        this.connection.addObserver(this);
-        this.openFetches = new HashMap<Integer, FetchEventCallback>();
-        this.openRequests = new HashMap<Integer, JetMethod>();
-        this.stateCallbacks = new HashMap<String, StateCallback>();
+        this.openFetches = new HashMap<>();
+        this.openRequests = new HashMap<>();
+        this.stateCallbacks = new HashMap<>();
         this.gson = new GsonBuilder().create();
         this.parser = new JsonParser();
     }
 
     @Override
+    public void close() throws IOException {
+        try {
+            if (!executor.awaitTermination(1, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+                if (!executor.awaitTermination(1, TimeUnit.SECONDS)) {
+                    LOGGER.log(Level.SEVERE, "Interrupted while waiting for termination of timer tasks!\n");
+                }
+            }
+        } catch (InterruptedException ie) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+    }
+    
+    @Override
     public void connect(ConnectionCompleted connectionCompleted, int timeoutMs) {
+        this.connection.addObserver(this);
         this.connection.connect(connectionCompleted, timeoutMs);
     }
 
     @Override
     public void disconnect() {
+        this.connection.deleteObserver(this);
         this.connection.disconnect();
     }
 
@@ -129,13 +152,13 @@ public class JetPeer implements Peer, Observer {
         if ((path == null) || (path.length() == 0)) {
             throw new IllegalArgumentException("path");
         }
-        
+
         synchronized (stateCallbacks) {
             if (!stateCallbacks.containsKey(path)) {
                 throw new IllegalArgumentException("don't call change() on a state you do not own");
             }
         }
-        
+
         JsonObject parameters = new JsonObject();
         parameters.addProperty("path", path);
         parameters.add("value", value);
@@ -202,8 +225,13 @@ public class JetPeer implements Peer, Observer {
         }
 
         if (method.hasResponseCallback()) {
+            ResponseTimeoutTask task;
+            task = new ResponseTimeoutTask(method);
             synchronized (openRequests) {
                 openRequests.put(method.getRequestId(), method);
+                ScheduledFuture<Void> future;
+                future = executor.schedule(task, timeoutMs, TimeUnit.MILLISECONDS);
+                method.addFuture(future);
             }
         }
 
@@ -315,6 +343,7 @@ public class JetPeer implements Peer, Observer {
                 return;
             }
             openRequests.remove(id);
+            method.getFuture().cancel(true);
             method.callResponseCallback(true, object);
         }
     }
@@ -344,7 +373,7 @@ public class JetPeer implements Peer, Observer {
             if ((path == null) || (path.length() == 0)) {
                 throw new JsonRpcException(JsonRpcException.METHOD_NOT_FOUND, "method is not a string or integer");
             }
-            
+
             boolean stateHandled = handleStateCallback(object, path);
             if (!stateHandled) {
                 handleMethod(object, path);
@@ -364,14 +393,14 @@ public class JetPeer implements Peer, Observer {
 
     private boolean handleStateCallback(JsonObject object, String path) throws JsonRpcException {
         boolean stateFound;
-        
+
         synchronized (stateCallbacks) {
             stateFound = stateCallbacks.containsKey(path);
         }
 
         if (stateFound) {
             StateCallback callback;
-            synchronized(stateCallbacks) {
+            synchronized (stateCallbacks) {
                 callback = stateCallbacks.get(path);
             }
             if (callback == null) {
@@ -405,6 +434,33 @@ public class JetPeer implements Peer, Observer {
     }
 
     private void handleMethod(JsonObject object, String path) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    private class ResponseTimeoutTask implements Callable<Void> {
+
+        private final JetMethod method;
+
+        private ResponseTimeoutTask(JetMethod method) {
+            this.method = method;
+        }
+
+        @Override
+        public Void call() throws Exception {
+            synchronized (openRequests) {
+                openRequests.remove(method.getRequestId());
+            }
+
+            JsonObject response = new JsonObject();
+            response.addProperty("id", method.getRequestId());
+            response.addProperty("jsonrpc", "2.0");
+            
+            JsonObject error = new JsonObject();
+            error.addProperty("code", -32100);
+            error.addProperty("message", "timeout while waiting for response");
+            response.add("error", error);
+            method.callResponseCallback(false, response);
+
+            return null;
+        }
     }
 }
