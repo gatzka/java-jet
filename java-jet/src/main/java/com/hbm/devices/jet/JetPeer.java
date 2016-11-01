@@ -24,13 +24,6 @@
 
 package com.hbm.devices.jet;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Observable;
-import java.util.Observer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -39,6 +32,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class JetPeer implements Peer, Observer {
 	
@@ -92,7 +91,7 @@ public class JetPeer implements Peer, Observer {
     }
 
     @Override
-    public void addState(String path, JsonElement value, ResponseCallback responseCallback, StateCallback stateCallback, int responseTimeoutMs, int stateSetTimeoutMs) {
+    public void addState(String path, JsonElement value, StateCallback stateCallback, int stateSetTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs) {
         if (path == null) {
             throw new NullPointerException("path");
         }
