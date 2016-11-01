@@ -3,3 +3,5 @@
 /.nb-gradle-properties
 /java-jet/build/
 /examples/connect/build/
+/examples/fetch/build/
+/examples/set/build/
