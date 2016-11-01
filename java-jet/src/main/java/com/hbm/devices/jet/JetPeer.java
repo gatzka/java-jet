@@ -85,7 +85,7 @@ public class JetPeer implements Peer, Observer {
         JsonObject parameters = new JsonObject();
         parameters.addProperty("path", path);
         parameters.add("value", value);
-        parameters.addProperty("timeout", timeoutMs * 1000.0);
+        parameters.addProperty("timeout", timeoutMs / 1000.0);
         JetMethod set = new JetMethod(JetMethod.SET, parameters, responseCallback);
         this.executeMethod(set, timeoutMs);
     }
@@ -99,7 +99,7 @@ public class JetPeer implements Peer, Observer {
         JsonObject parameters = new JsonObject();
         parameters.addProperty("path", path);
         parameters.add("value", value);
-        parameters.addProperty("timeout", stateSetTimeoutMs * 1000.0);
+        parameters.addProperty("timeout", stateSetTimeoutMs / 1000.0);
         if (stateCallback == null) {
             parameters.addProperty("fetchOnly", true);
         } else {
