@@ -1,6 +1,6 @@
 apply plugin: 'application'
 
-description 'An example to use the devscan library for receiving announce messages.'
+description 'An example to use the jet library for setting a state.'
 project.version = getRootProject().version
 mainClassName = 'Set'
 
