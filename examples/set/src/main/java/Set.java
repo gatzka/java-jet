@@ -26,10 +26,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import com.hbm.devices.jet.ConnectionCompleted;
-import com.hbm.devices.jet.FetchEventCallback;
 import com.hbm.devices.jet.JetConnection;
 import com.hbm.devices.jet.JetPeer;
-import com.hbm.devices.jet.Matcher;
 import com.hbm.devices.jet.NaiveSSLContext;
 import com.hbm.devices.jet.Peer;
 import com.hbm.devices.jet.ResponseCallback;
@@ -42,6 +40,7 @@ import java.util.logging.Logger;
 import javax.net.ssl.SSLContext;
 
 public class Set {
+
     public static void main(String[] args) {
         try {
             SSLContext context = NaiveSSLContext.getInstance("TLS");
@@ -63,6 +62,7 @@ public class Set {
 }
 
 class JetHandler implements ConnectionCompleted, ResponseCallback {
+
     private Peer peer;
 
     JetHandler(Peer peer) {

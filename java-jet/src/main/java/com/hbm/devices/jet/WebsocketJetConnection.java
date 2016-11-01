@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package com.hbm.devices.jet;
 
 import com.neovisionaries.ws.client.WebSocket;
@@ -31,7 +30,6 @@ import com.neovisionaries.ws.client.WebSocketFactory;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.Observable;
 import javax.net.ssl.SSLContext;
 
 public class WebsocketJetConnection extends JetConnection {
@@ -45,7 +43,7 @@ public class WebsocketJetConnection extends JetConnection {
         this(url);
         this.context = sslContext;
     }
-    
+
     public WebsocketJetConnection(final String url) {
         this.url = url;
     }
@@ -78,7 +76,7 @@ public class WebsocketJetConnection extends JetConnection {
     public void sendMessage(String message) {
         ws.sendText(message);
     }
-    
+
     void connectCompleted(boolean success) {
         this.completed.completed(success);
     }

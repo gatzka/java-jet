@@ -21,14 +21,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package com.hbm.devices.jet;
 
+import com.google.gson.JsonObject;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.google.gson.JsonObject;
-
 class JetMethod {
+
     static final String INFO = "info";
     static final String SET = "set";
     static final String FETCH = "fetch";
@@ -38,7 +37,8 @@ class JetMethod {
     static final String REMOVE = "remove";
     static final String CHANGE = "change";
 
-    private static AtomicInteger requestIdCounter = new AtomicInteger();;
+    private static AtomicInteger requestIdCounter = new AtomicInteger();
+    ;
 
     private final ResponseCallback responseCallback;
     private int requestId;

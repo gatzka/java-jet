@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package com.hbm.devices.jet;
 
 import com.google.gson.Gson;
@@ -40,32 +39,33 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class JetPeer implements Peer, Observer {
-	
-	private final JetConnection connection;
+
+    private final JetConnection connection;
     private final Map<String, FetchEventCallback> openFetches;
     private final Map<Integer, JetMethod> openRequests;
-    private final Map<String, StateCallback> stateCallbacks;;
+    private final Map<String, StateCallback> stateCallbacks;
+    ;
     private final Gson gson;
     private final JsonParser parser;
 
     private static final Logger LOGGER = Logger.getLogger(JetConstants.LOGGER_NAME);
-	
-	public JetPeer(JetConnection connection) {
-		this.connection = connection;
-		this.connection.addObserver(this);
+
+    public JetPeer(JetConnection connection) {
+        this.connection = connection;
+        this.connection.addObserver(this);
         this.openFetches = new HashMap<String, FetchEventCallback>();
         this.openRequests = new HashMap<Integer, JetMethod>();
         this.stateCallbacks = new HashMap<String, StateCallback>();
         this.gson = new GsonBuilder().create();
         this.parser = new JsonParser();
-	}
+    }
 
-	@Override
-	public void connect(ConnectionCompleted connectionCompleted, int timeoutMs) {
-		this.connection.connect(connectionCompleted, timeoutMs);
-	}
+    @Override
+    public void connect(ConnectionCompleted connectionCompleted, int timeoutMs) {
+        this.connection.connect(connectionCompleted, timeoutMs);
+    }
 
-	@Override
+    @Override
     public void disconnect() {
         this.connection.disconnect();
     }
@@ -75,8 +75,8 @@ public class JetPeer implements Peer, Observer {
         if (path == null) {
             throw new NullPointerException("path");
         }
-        
-        synchronized(stateCallbacks) {
+
+        synchronized (stateCallbacks) {
             if (stateCallbacks.containsKey(path)) {
                 throw new IllegalArgumentException("Don't call Set() on a state you own, use Change() instead!");
             }
@@ -101,7 +101,7 @@ public class JetPeer implements Peer, Observer {
         parameters.add("value", value);
         parameters.addProperty("timeout", stateSetTimeoutMs * 1000.0);
         if (stateCallback == null) {
-             parameters.addProperty("fetchOnly", true);
+            parameters.addProperty("fetchOnly", true);
         } else {
             registerStateCallback(path, stateCallback);
         }
@@ -124,7 +124,7 @@ public class JetPeer implements Peer, Observer {
         this.executeMethod(remove, responseTimeoutMs);
     }
 
-	@Override
+    @Override
     public FetchId fetch(Matcher matcher, FetchEventCallback callback, ResponseCallback responseCallback, int timeoutMs) {
         FetchId fetchId = new FetchId();
 
@@ -142,7 +142,7 @@ public class JetPeer implements Peer, Observer {
 
         return fetchId;
     }
-    
+
     @Override
     public void unfetch(FetchId id, ResponseCallback responseCallback, int responseTimeoutMs) {
         this.unregisterFetcher(id.toString());
@@ -218,13 +218,13 @@ public class JetPeer implements Peer, Observer {
 
         if ((matcher.containsAllOf != null) && (matcher.containsAllOf.length > 0)) {
             JsonArray containsArray = new JsonArray();
-            for (String element: matcher.containsAllOf) {
+            for (String element : matcher.containsAllOf) {
                 containsArray.add(new JsonPrimitive(element));
             }
 
             path.add("containsAllOf", containsArray);
         }
-        
+
         if ((path.entrySet() != null) && (path.entrySet().size() > 0)) {
             return path;
         } else {
@@ -234,19 +234,19 @@ public class JetPeer implements Peer, Observer {
 
     public void update(Observable observable, Object obj) {
         try {
-            JsonElement element = parser.parse((String)obj);
+            JsonElement element = parser.parse((String) obj);
             if (element == null) {
                 return;
             }
 
             if (element.isJsonObject()) {
-                handleSingleJsonMessage((JsonObject)element);
+                handleSingleJsonMessage((JsonObject) element);
             } else if (element.isJsonArray()) {
-                JsonArray array = (JsonArray)element;
+                JsonArray array = (JsonArray) element;
                 for (int i = 0; i < array.size(); i++) {
                     JsonElement e = array.get(i);
                     if (e.isJsonObject()) {
-                        handleSingleJsonMessage((JsonObject)e);
+                        handleSingleJsonMessage((JsonObject) e);
                     }
                 }
             }
@@ -265,7 +265,7 @@ public class JetPeer implements Peer, Observer {
             handleFetch(fetchId, object);
             return;
         }
- 
+
         if (isResponse(object)) {
             handleResponse(object);
         }

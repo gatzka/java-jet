@@ -21,17 +21,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package com.hbm.devices.jet;
 
 import com.google.gson.JsonElement;
 
 public interface Peer {
+
     public void connect(ConnectionCompleted connectionCompleted, int responseTimeoutMs);
+
     public void disconnect();
+
     public FetchId fetch(Matcher matcher, FetchEventCallback callback, ResponseCallback responseCallback, int responseTimeoutMs);
+
     public void unfetch(FetchId id, ResponseCallback responseCallback, int responseTimeoutMs);
+
     public void set(String path, JsonElement value, ResponseCallback responseCallback, int responseTimeoutMs);
+
     public void addState(String path, JsonElement value, StateCallback stateCallback, int stateSetTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs);
+
     public void removeState(String path, ResponseCallback responseCallback, int responseTimeoutMs);
 }

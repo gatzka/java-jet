@@ -21,14 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package com.hbm.devices.jet;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class FetchId {
 
-    private static AtomicInteger fetchIdCounter = new AtomicInteger();;
+    private static AtomicInteger fetchIdCounter = new AtomicInteger();
+    ;
 
     private int fetchId;
 
@@ -51,7 +51,7 @@ public class FetchId {
             return true;
         }
 
-        FetchId rhs = (FetchId)obj;
+        FetchId rhs = (FetchId) obj;
 
         return rhs.fetchId == this.fetchId;
     }
@@ -61,4 +61,3 @@ public class FetchId {
         return Integer.toString(fetchId);
     }
 }
-

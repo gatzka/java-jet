@@ -24,5 +24,6 @@
 package com.hbm.devices.jet;
 
 public interface ConnectionCompleted {
+
     public void completed(boolean success);
 }

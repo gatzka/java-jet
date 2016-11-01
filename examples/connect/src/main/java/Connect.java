@@ -22,11 +22,10 @@
  * THE SOFTWARE.
  */
 
-import com.hbm.devices.jet.ConnectionCompleted;
 import com.hbm.devices.jet.JetConnection;
-import com.hbm.devices.jet.Peer;
 import com.hbm.devices.jet.JetPeer;
 import com.hbm.devices.jet.NaiveSSLContext;
+import com.hbm.devices.jet.Peer;
 import com.hbm.devices.jet.WebsocketJetConnection;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -35,22 +34,20 @@ import java.util.logging.Logger;
 import javax.net.ssl.SSLContext;
 
 public class Connect {
+
     public static void main(String[] args) {
         try {
             SSLContext context = NaiveSSLContext.getInstance("TLS");
             JetConnection connection = new WebsocketJetConnection("ws://cjet-raspi", context);
             Peer peer = new JetPeer(connection);
-            peer.connect(new ConnectionCompleted() {
-                @Override
-                public void completed(boolean success) {
-                    if (success) {
-                        System.out.println("Connection completed!");
-                    } else {
-                        System.out.println("Connection failed!");
-                    }
+            peer.connect((boolean success) -> {
+                if (success) {
+                    System.out.println("Connection completed!");
+                } else {
+                    System.out.println("Connection failed!");
                 }
             },
-            5000);
+                    5000);
 
             try {
                 System.in.read();

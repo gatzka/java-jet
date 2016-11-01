@@ -23,10 +23,9 @@
  */
 
 import com.google.gson.JsonObject;
-
 import com.hbm.devices.jet.ConnectionCompleted;
 import com.hbm.devices.jet.FetchEventCallback;
-import com.hbm.devices.jet.FetchId;;
+import com.hbm.devices.jet.FetchId;
 import com.hbm.devices.jet.JetConnection;
 import com.hbm.devices.jet.JetPeer;
 import com.hbm.devices.jet.Matcher;
@@ -34,14 +33,16 @@ import com.hbm.devices.jet.NaiveSSLContext;
 import com.hbm.devices.jet.Peer;
 import com.hbm.devices.jet.ResponseCallback;
 import com.hbm.devices.jet.WebsocketJetConnection;
-
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.SSLContext;
 
+
+
 public class Fetch {
+
     public static void main(String[] args) {
         try {
             SSLContext context = NaiveSSLContext.getInstance("TLS");
@@ -63,6 +64,7 @@ public class Fetch {
 }
 
 class JetHandler implements ConnectionCompleted, FetchEventCallback, ResponseCallback {
+
     private Peer peer;
 
     JetHandler(Peer peer) {
