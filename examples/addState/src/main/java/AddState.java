@@ -73,17 +73,17 @@ class JetHandler implements ConnectionCompleted, ResponseCallback, StateCallback
     @Override
     public void completed(boolean success) {
         if (success) {
-            System.out.println("AddState Connection completed!");
+            Logger.getLogger(AddState.class.getName()).log(Level.INFO, "AddState Connection completed!");
             JsonPrimitive value = new JsonPrimitive(42);
             peer.addState("theState", value, this, 1000, this, 5000);
         } else {
-            System.out.println("Connection failed!");
+            Logger.getLogger(AddState.class.getName()).log(Level.SEVERE, "Connection failed!");
         }
     }
 
     @Override
     public void onResponse(boolean completed, JsonObject response) {
-        System.out.println("completed: " + completed + " response: " + response);
+        Logger.getLogger(AddState.class.getName()).log(Level.INFO, "completed: {0} response: {1}", new Object[]{completed, response});
     }
 
     @Override
