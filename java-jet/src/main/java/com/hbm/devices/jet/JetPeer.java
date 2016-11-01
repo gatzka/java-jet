@@ -41,7 +41,7 @@ import java.util.logging.Logger;
 public class JetPeer implements Peer, Observer {
 
     private final JetConnection connection;
-    private final Map<String, FetchEventCallback> openFetches;
+    private final Map<Integer, FetchEventCallback> openFetches;
     private final Map<Integer, JetMethod> openRequests;
     private final Map<String, StateCallback> stateCallbacks;
     ;
@@ -53,7 +53,7 @@ public class JetPeer implements Peer, Observer {
     public JetPeer(JetConnection connection) {
         this.connection = connection;
         this.connection.addObserver(this);
-        this.openFetches = new HashMap<String, FetchEventCallback>();
+        this.openFetches = new HashMap<Integer, FetchEventCallback>();
         this.openRequests = new HashMap<Integer, JetMethod>();
         this.stateCallbacks = new HashMap<String, StateCallback>();
         this.gson = new GsonBuilder().create();
@@ -133,11 +133,11 @@ public class JetPeer implements Peer, Observer {
         if (path != null) {
             parameters.add("path", path);
         }
-        parameters.addProperty("id", fetchId.toString());
+        parameters.addProperty("id", fetchId.getId());
         parameters.addProperty("caseInsensitive", matcher.caseInsensitive);
 
         JetMethod fetch = new JetMethod(JetMethod.FETCH, parameters, responseCallback);
-        this.registerFetcher(fetchId.toString(), callback);
+        this.registerFetcher(fetchId.getId(), callback);
         this.executeMethod(fetch, timeoutMs);
 
         return fetchId;
@@ -145,7 +145,7 @@ public class JetPeer implements Peer, Observer {
 
     @Override
     public void unfetch(FetchId id, ResponseCallback responseCallback, int responseTimeoutMs) {
-        this.unregisterFetcher(id.toString());
+        this.unregisterFetcher(id.getId());
 
         JsonObject parameters = new JsonObject();
         parameters.addProperty("id", id.toString());
@@ -153,13 +153,13 @@ public class JetPeer implements Peer, Observer {
         this.executeMethod(unfetch, responseTimeoutMs);
     }
 
-    private void registerFetcher(String fetchId, FetchEventCallback callback) {
+    private void registerFetcher(int fetchId, FetchEventCallback callback) {
         synchronized (openFetches) {
             openFetches.put(fetchId, callback);
         }
     }
 
-    private void unregisterFetcher(String fetchId) {
+    private void unregisterFetcher(int fetchId) {
         synchronized (openFetches) {
             openFetches.remove(fetchId);
         }
@@ -260,18 +260,21 @@ public class JetPeer implements Peer, Observer {
     }
 
     private void handleSingleJsonMessage(JsonObject object) {
-        String fetchId = getFetchId(object);
+        JsonPrimitive fetchId = getFetchId(object);
         if (fetchId != null) {
-            handleFetch(fetchId, object);
+            handleFetch(fetchId.getAsInt(), object);
             return;
         }
 
         if (isResponse(object)) {
             handleResponse(object);
+            return;
         }
+
+        handleStateOrMethodCallbacks(object);
     }
 
-    private void handleFetch(String fetchId, JsonObject object) {
+    private void handleFetch(int fetchId, JsonObject object) {
         synchronized (openFetches) {
             FetchEventCallback callback = openFetches.get(fetchId);
             if (callback != null) {
@@ -296,10 +299,10 @@ public class JetPeer implements Peer, Observer {
         }
     }
 
-    private String getFetchId(JsonObject object) {
+    private JsonPrimitive getFetchId(JsonObject object) {
         JsonPrimitive method = object.getAsJsonPrimitive("method");
-        if ((method != null) && (method.isString())) {
-            return method.getAsString();
+        if ((method != null) && (method.isNumber())) {
+            return method;
         }
 
         return null;
@@ -308,5 +311,82 @@ public class JetPeer implements Peer, Observer {
     private boolean isResponse(JsonObject object) {
         JsonPrimitive id = object.getAsJsonPrimitive("id");
         return (id != null) && (id.isNumber());
+    }
+
+    private void handleStateOrMethodCallbacks(JsonObject object) {
+        try {
+            JsonPrimitive method = object.getAsJsonPrimitive("method");
+            if (method == null) {
+                throw new JsonRpcException(JsonRpcException.METHOD_NOT_FOUND, "no method given");
+            }
+
+            String path = method.getAsString();
+            if ((path == null) || (path.length() == 0)) {
+                throw new JsonRpcException(JsonRpcException.METHOD_NOT_FOUND, "method is not a string or integer");
+            }
+            
+            boolean stateHandled = handleStateCallback(object, path);
+            if (stateHandled) {
+                return;
+            } else {
+                handleMethod(object, path);
+            }
+        } catch (JsonRpcException e) {
+            sendResponse(object, e.getJson());
+        }
+    }
+
+    private void sendResponse(JsonObject request, JsonObject responseObject) {
+        JsonPrimitive id = request.getAsJsonPrimitive("id");
+        if ((id != null) && ((id.isString()) || (id.isNumber()))) {
+            responseObject.add("id", id);
+            this.connection.sendMessage(gson.toJson(responseObject));
+        }
+    }
+
+    private boolean handleStateCallback(JsonObject object, String path) throws JsonRpcException {
+        boolean stateFound;
+        
+        synchronized (stateCallbacks) {
+            stateFound = stateCallbacks.containsKey(path);
+        }
+
+        if (stateFound) {
+            StateCallback callback;
+            synchronized(stateCallbacks) {
+                callback = stateCallbacks.get(path);
+            }
+            if (callback == null) {
+                throw new JsonRpcException(JsonRpcException.INVALID_REQUEST, "state is readonly");
+            }
+
+            JsonObject parameters = object.getAsJsonObject("params");
+            if (parameters == null) {
+                throw new JsonRpcException(JsonRpcException.INVALID_PARAMS, "no parameters in json");
+            }
+
+            JsonElement value = parameters.get("value");
+            if (value == null) {
+                throw new JsonRpcException(JsonRpcException.INVALID_PARAMS, "no value in parameter");
+            }
+
+            JsonElement newValue = callback.onStateSet(path, value);
+            if (newValue != null) {
+                value = newValue;
+            }
+
+            // TODO: this.change();
+            JsonObject result = new JsonObject();
+            result.addProperty("result", true);
+            sendResponse(object, result);
+            return true;
+
+        } else {
+            return false;
+        }
+    }
+
+    private void handleMethod(JsonObject object, String path) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

@@ -23,45 +23,24 @@
  */
 package com.hbm.devices.jet;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import com.google.gson.JsonObject;
 
-public class FetchId {
-
-    private static AtomicInteger fetchIdCounter = new AtomicInteger();
-    ;
-
-    private int fetchId;
-
-    public FetchId() {
-        this.fetchId = fetchIdCounter.incrementAndGet();
-    }
-
-    @Override
-    public int hashCode() {
-        return Integer.toString(fetchId).hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof FetchId)) {
-            return false;
-        }
-
-        if (obj == this) {
-            return true;
-        }
-
-        FetchId rhs = (FetchId) obj;
-
-        return rhs.fetchId == this.fetchId;
-    }
-
-    @Override
-    public String toString() {
-        return Integer.toString(fetchId);
-    }
+public class JsonRpcException extends Exception {
+    public static final int PARSE_ERROR = -32700;
+    public static final int INVALID_REQUEST = -32600;
+    public static final int METHOD_NOT_FOUND = -32601;
+    public static final int INVALID_PARAMS = -32602;
+    public static final int INTERNAL_ERROR = -32603;
     
-    int getId() {
-        return fetchId;
+    private JsonObject error;
+    
+    public JsonRpcException(int code, String message) {
+        this.error = new JsonObject();
+        this.error.addProperty("code", code);
+        this.error.addProperty("message", message);
+    }
+
+    JsonObject getJson() {
+        return error;
     }
 }

@@ -26,5 +26,5 @@ package com.hbm.devices.jet;
 import com.google.gson.JsonElement;
 
 public interface StateCallback {
-    public JsonElement onStateSet(String path, JsonElement value);
+    public JsonElement onStateSet(String path, JsonElement value) throws JsonRpcException;
 }
