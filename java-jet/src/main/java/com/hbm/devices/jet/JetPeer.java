@@ -393,7 +393,7 @@ public class JetPeer implements Peer, Observer {
                 value = newValue;
             }
 
-            // TODO: this.change();
+            this.change(path, value, null, 0);
             JsonObject result = new JsonObject();
             result.addProperty("result", true);
             sendResponse(object, result);
