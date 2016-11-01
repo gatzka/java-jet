@@ -56,6 +56,11 @@ public class AddState {
                 Logger.getLogger(AddState.class.getName()).log(Level.SEVERE, null, ex);
             }
             peer.disconnect();
+            try {
+                peer.close();
+            } catch (IOException ex) {
+                Logger.getLogger(AddState.class.getName()).log(Level.SEVERE, null, ex);
+            }
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(AddState.class.getName()).log(Level.SEVERE, null, ex);
         }

@@ -57,6 +57,11 @@ public class Fetch {
                 Logger.getLogger(Fetch.class.getName()).log(Level.SEVERE, null, ex);
             }
             peer.disconnect();
+                        try {
+                peer.close();
+            } catch (IOException ex) {
+                Logger.getLogger(Fetch.class.getName()).log(Level.SEVERE, null, ex);
+            }
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(Fetch.class.getName()).log(Level.SEVERE, null, ex);
         }

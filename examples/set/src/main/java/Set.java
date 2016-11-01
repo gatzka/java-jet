@@ -53,6 +53,11 @@ public class Set {
                 Logger.getLogger(Set.class.getName()).log(Level.SEVERE, null, ex);
             }
             peer.disconnect();
+            try {
+                peer.close();
+            } catch (IOException ex) {
+                Logger.getLogger(Set.class.getName()).log(Level.SEVERE, null, ex);
+            }
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(Set.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -61,7 +66,7 @@ public class Set {
 
 class JetHandler implements ConnectionCompleted, ResponseCallback {
 
-    private Peer peer;
+    private final Peer peer;
 
     JetHandler(Peer peer) {
         this.peer = peer;
