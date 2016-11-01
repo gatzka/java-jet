@@ -42,9 +42,9 @@ public class Connect {
             Peer peer = new JetPeer(connection);
             peer.connect((boolean success) -> {
                 if (success) {
-                    System.out.println("Connection completed!");
+                    Logger.getLogger(Connect.class.getName()).log(Level.INFO, "Change Connection completed!");
                 } else {
-                    System.out.println("Connection failed!");
+                    Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, "Connection failed!");
                 }
             },
                     5000);

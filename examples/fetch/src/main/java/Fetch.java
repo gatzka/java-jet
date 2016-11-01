@@ -74,23 +74,23 @@ class JetHandler implements ConnectionCompleted, FetchEventCallback, ResponseCal
     @Override
     public void completed(boolean success) {
         if (success) {
-            System.out.println("Fetch Connection completed!");
+            Logger.getLogger(Fetch.class.getName()).log(Level.INFO, "Fetch Connection completed!");
             Matcher matcher = new Matcher();
             matcher.startsWith = "theState";
             FetchId id = peer.fetch(matcher, this, this, 5000);
             peer.unfetch(id, this, 5000);
         } else {
-            System.out.println("Connection failed!");
+            Logger.getLogger(Fetch.class.getName()).log(Level.SEVERE, "Fetch Connection failed!");
         }
     }
 
     @Override
     public void onResponse(boolean completed, JsonObject response) {
-        System.out.println("completed: " + completed + " response: " + response);
+        Logger.getLogger(Fetch.class.getName()).log(Level.INFO, "completed: {0} response: {1}", new Object[]{completed, response});
     }
 
     @Override
     public void onFetchEvent(JsonObject params) {
-        System.out.println("fetch event: " + params);
+        Logger.getLogger(Fetch.class.getName()).log(Level.INFO, "fetch event: {0}", params);
     }
 }

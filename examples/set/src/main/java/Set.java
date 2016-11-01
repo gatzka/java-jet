@@ -24,7 +24,6 @@
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-
 import com.hbm.devices.jet.ConnectionCompleted;
 import com.hbm.devices.jet.JetConnection;
 import com.hbm.devices.jet.JetPeer;
@@ -32,7 +31,6 @@ import com.hbm.devices.jet.NaiveSSLContext;
 import com.hbm.devices.jet.Peer;
 import com.hbm.devices.jet.ResponseCallback;
 import com.hbm.devices.jet.WebsocketJetConnection;
-
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
@@ -72,16 +70,16 @@ class JetHandler implements ConnectionCompleted, ResponseCallback {
     @Override
     public void completed(boolean success) {
         if (success) {
-            System.out.println("Set Connection completed!");
+            Logger.getLogger(Set.class.getName()).log(Level.INFO, "Set Connection completed!");
             JsonPrimitive value = new JsonPrimitive(42);
             peer.set("theState", value, this, 5000);
         } else {
-            System.out.println("Connection failed!");
+            Logger.getLogger(Set.class.getName()).log(Level.SEVERE, "Set Connection failed!");
         }
     }
 
     @Override
     public void onResponse(boolean completed, JsonObject response) {
-        System.out.println("completed: " + completed + " response: " + response);
+        Logger.getLogger(Set.class.getName()).log(Level.INFO, "completed: {0} response: {1}", new Object[]{completed, response});
     }
 }
