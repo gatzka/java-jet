@@ -40,4 +40,6 @@ public interface Peer {
     public void addState(String path, JsonElement value, StateCallback stateCallback, int stateSetTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs);
 
     public void removeState(String path, ResponseCallback responseCallback, int responseTimeoutMs);
+    
+    public void change(String path, JsonElement value, ResponseCallback responseCallback, int responseTimeoutMs);
 }
