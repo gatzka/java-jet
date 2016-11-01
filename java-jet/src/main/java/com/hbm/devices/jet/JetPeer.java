@@ -148,7 +148,7 @@ public class JetPeer implements Peer, Observer {
         this.unregisterFetcher(id.getId());
 
         JsonObject parameters = new JsonObject();
-        parameters.addProperty("id", id.toString());
+        parameters.addProperty("id", id.getId());
         JetMethod unfetch = new JetMethod(JetMethod.UNFETCH, parameters, responseCallback);
         this.executeMethod(unfetch, responseTimeoutMs);
     }
