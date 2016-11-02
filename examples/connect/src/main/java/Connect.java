@@ -22,6 +22,7 @@
  * THE SOFTWARE.
  */
 
+import com.hbm.devices.jet.ConnectionCompleted;
 import com.hbm.devices.jet.JetConnection;
 import com.hbm.devices.jet.JetPeer;
 import com.hbm.devices.jet.NaiveSSLContext;
@@ -40,14 +41,16 @@ public class Connect {
             SSLContext context = NaiveSSLContext.getInstance("TLS");
             JetConnection connection = new WebsocketJetConnection("ws://cjet-raspi", context);
             Peer peer = new JetPeer(connection);
-            peer.connect((boolean success) -> {
-                if (success) {
-                    Logger.getLogger(Connect.class.getName()).log(Level.INFO, "Change Connection completed!");
-                } else {
-                    Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, "Connection failed!");
+            peer.connect(new ConnectionCompleted() {
+                @Override
+                public void completed(boolean success) {
+                    if (success) {
+                        Logger.getLogger(Connect.class.getName()).log(Level.INFO, "Change Connection completed!");
+                    } else {
+                        Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, "Connection failed!");
+                    }
                 }
-            },
-                    5000);
+            }, 5000);
 
             try {
                 System.in.read();
