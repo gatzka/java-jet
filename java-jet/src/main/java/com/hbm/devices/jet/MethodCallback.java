@@ -24,29 +24,7 @@
 package com.hbm.devices.jet;
 
 import com.google.gson.JsonElement;
-import java.io.Closeable;
-import java.io.IOException;
 
-public interface Peer extends Closeable {
-
-    @Override
-    public void close() throws IOException;
-    
-    public void connect(ConnectionCompleted connectionCompleted, int responseTimeoutMs);
-
-    public void disconnect();
-
-    public FetchId fetch(Matcher matcher, FetchEventCallback callback, ResponseCallback responseCallback, int responseTimeoutMs);
-
-    public void unfetch(FetchId id, ResponseCallback responseCallback, int responseTimeoutMs);
-
-    public void set(String path, JsonElement value, ResponseCallback responseCallback, int responseTimeoutMs);
-
-    public void addState(String path, JsonElement value, StateCallback stateCallback, int stateSetTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs);
-
-    public void removeState(String path, ResponseCallback responseCallback, int responseTimeoutMs);
-    
-    public void change(String path, JsonElement value, ResponseCallback responseCallback, int responseTimeoutMs);
-
-    public void call(String path, JsonElement arguments, ResponseCallback responseCallback, int responseTimeoutMs);
+public interface MethodCallback {
+    public JsonElement onMethodCalled(String path, JsonElement value) throws JsonRpcException;
 }
