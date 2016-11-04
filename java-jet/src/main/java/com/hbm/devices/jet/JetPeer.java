@@ -219,6 +219,39 @@ public class JetPeer implements Peer, Observer, Closeable {
         this.executeMethod(call, responseTimeoutMs);
     }
 
+    @Override
+    public void addMethod(String path, MethodCallback methodCallback, int methodCallTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs) {
+        if ((path == null) || (path.length() == 0)) {
+            throw new IllegalArgumentException("path");
+        }
+
+        if (methodCallback == null) {
+            throw new NullPointerException("methodCallback");
+        }
+        JsonObject parameters = new JsonObject();
+        parameters.addProperty("path", path);
+        parameters.addProperty("timeout", methodCallTimeoutMs / 1000.0);
+ 
+        registerMethodCallback(path, methodCallback);
+
+        JetMethod add = new JetMethod(JetMethod.ADD, parameters, responseCallback);
+        this.executeMethod(add, responseTimeoutMs);
+    }
+    
+    @Override
+    public void removeMethod(String path, ResponseCallback responseCallback, int responseTimeoutMs) {
+        if ((path == null) || (path.length() == 0)) {
+            throw new IllegalArgumentException("path");
+        }
+
+        unregisterMethodCallback(path);
+
+        JsonObject parameters = new JsonObject();
+        parameters.addProperty("path", path);
+        JetMethod remove = new JetMethod(JetMethod.REMOVE, parameters, responseCallback);
+        this.executeMethod(remove, responseTimeoutMs);
+    }
+
     private void registerFetcher(int fetchId, FetchEventCallback callback) {
         synchronized (openFetches) {
             openFetches.put(fetchId, callback);
@@ -240,6 +273,18 @@ public class JetPeer implements Peer, Observer, Closeable {
     private void unregisterStateCallback(String path) {
         synchronized (stateCallbacks) {
             stateCallbacks.remove(path);
+        }
+    }
+    
+    private void registerMethodCallback(String path, MethodCallback callback) {
+        synchronized (methodCallbacks) {
+            methodCallbacks.put(path, callback);
+        }
+    }
+
+    private void unregisterMethodCallback(String path) {
+        synchronized (methodCallbacks) {
+            methodCallbacks.remove(path);
         }
     }
 
