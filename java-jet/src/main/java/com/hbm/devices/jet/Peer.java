@@ -47,4 +47,10 @@ public interface Peer extends Closeable {
     public void removeState(String path, ResponseCallback responseCallback, int responseTimeoutMs);
     
     public void change(String path, JsonElement value, ResponseCallback responseCallback, int responseTimeoutMs);
+
+    public void addMethod(String path, MethodCallback methodCallback, int methodCallTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs);
+    
+    public void removeMethod(String path, ResponseCallback responseCallback, int responseTimeoutMs);
+    
+    public void call(String path, JsonElement arguments, ResponseCallback responseCallback, int responseTimeoutMs);
 }

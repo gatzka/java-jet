@@ -22,11 +22,14 @@
  * THE SOFTWARE.
  */
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.hbm.devices.jet.ConnectionCompleted;
 import com.hbm.devices.jet.JetConnection;
 import com.hbm.devices.jet.JetPeer;
 import com.hbm.devices.jet.NaiveSSLContext;
 import com.hbm.devices.jet.Peer;
+import com.hbm.devices.jet.ResponseCallback;
 import com.hbm.devices.jet.WebsocketJetConnection;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -34,37 +37,54 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.SSLContext;
 
-public class Connect {
+public class Call {
 
     public static void main(String[] args) {
         try {
             SSLContext context = NaiveSSLContext.getInstance("TLS");
             JetConnection connection = new WebsocketJetConnection("ws://cjet-raspi", context);
             Peer peer = new JetPeer(connection);
-            peer.connect(new ConnectionCompleted() {
-                @Override
-                public void completed(boolean success) {
-                    if (success) {
-                        Logger.getLogger(Connect.class.getName()).log(Level.INFO, "Change Connection completed!");
-                    } else {
-                        Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, "Connection failed!");
-                    }
-                }
-            }, 5000);
+            JetHandler handler = new JetHandler(peer);
+            peer.connect(handler, 5000);
 
             try {
                 System.in.read();
             } catch (IOException ex) {
-                Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Call.class.getName()).log(Level.SEVERE, null, ex);
             }
             peer.disconnect();
             try {
                 peer.close();
             } catch (IOException ex) {
-                Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Call.class.getName()).log(Level.SEVERE, null, ex);
             }
         } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Call.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+}
+
+class JetHandler implements ConnectionCompleted, ResponseCallback {
+
+    private final Peer peer;
+
+    JetHandler(Peer peer) {
+        this.peer = peer;
+    }
+
+    @Override
+    public void completed(boolean success) {
+        if (success) {
+            Logger.getLogger(Call.class.getName()).log(Level.INFO, "Call Connection completed!");
+            JsonPrimitive value = new JsonPrimitive(42);
+            peer.call("theMethod", value, this, 5000);
+        } else {
+            Logger.getLogger(Call.class.getName()).log(Level.SEVERE, "Call Connection failed!");
+        }
+    }
+
+    @Override
+    public void onResponse(boolean completed, JsonObject response) {
+        Logger.getLogger(Call.class.getName()).log(Level.INFO, "completed: {0} response: {1}", new Object[]{completed, response});
     }
 }

@@ -50,6 +50,7 @@ public class JetPeer implements Peer, Observer, Closeable {
     private final Map<Integer, FetchEventCallback> openFetches;
     private final Map<Integer, JetMethod> openRequests;
     private final Map<String, StateCallback> stateCallbacks;
+    private final Map<String, MethodCallback> methodCallbacks;
     private final Gson gson;
     private final JsonParser parser;
     private final ScheduledThreadPoolExecutor executor;
@@ -62,6 +63,7 @@ public class JetPeer implements Peer, Observer, Closeable {
         this.openFetches = new HashMap<>();
         this.openRequests = new HashMap<>();
         this.stateCallbacks = new HashMap<>();
+        this.methodCallbacks = new HashMap<>();
         this.gson = new GsonBuilder().create();
         this.parser = new JsonParser();
     }
@@ -80,7 +82,7 @@ public class JetPeer implements Peer, Observer, Closeable {
             Thread.currentThread().interrupt();
         }
     }
-    
+
     @Override
     public void connect(ConnectionCompleted connectionCompleted, int timeoutMs) {
         this.connection.addObserver(this);
@@ -195,6 +197,61 @@ public class JetPeer implements Peer, Observer, Closeable {
         this.executeMethod(unfetch, responseTimeoutMs);
     }
 
+    @Override
+    public void call(String path, JsonElement arguments, ResponseCallback responseCallback, int responseTimeoutMs) {
+        if ((path == null) || (path.length() == 0)) {
+            throw new IllegalArgumentException("path");
+        }
+
+        synchronized (methodCallbacks) {
+            if (methodCallbacks.containsKey(path)) {
+                throw new IllegalArgumentException("Don't call call() on a method you own!");
+            }
+        }
+
+        JsonObject parameters = new JsonObject();
+        parameters.addProperty("path", path);
+        if (!arguments.isJsonNull()) {
+            parameters.add("args", arguments);
+        }
+        parameters.addProperty("timeout", responseTimeoutMs / 1000.0);
+        JetMethod call = new JetMethod(JetMethod.CALL, parameters, responseCallback);
+        this.executeMethod(call, responseTimeoutMs);
+    }
+
+    @Override
+    public void addMethod(String path, MethodCallback methodCallback, int methodCallTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs) {
+        if ((path == null) || (path.length() == 0)) {
+            throw new IllegalArgumentException("path");
+        }
+
+        if (methodCallback == null) {
+            throw new NullPointerException("methodCallback");
+        }
+        JsonObject parameters = new JsonObject();
+        parameters.addProperty("path", path);
+        parameters.addProperty("timeout", methodCallTimeoutMs / 1000.0);
+ 
+        registerMethodCallback(path, methodCallback);
+
+        JetMethod add = new JetMethod(JetMethod.ADD, parameters, responseCallback);
+        this.executeMethod(add, responseTimeoutMs);
+    }
+    
+    @Override
+    public void removeMethod(String path, ResponseCallback responseCallback, int responseTimeoutMs) {
+        if ((path == null) || (path.length() == 0)) {
+            throw new IllegalArgumentException("path");
+        }
+
+        unregisterMethodCallback(path);
+
+        JsonObject parameters = new JsonObject();
+        parameters.addProperty("path", path);
+        JetMethod remove = new JetMethod(JetMethod.REMOVE, parameters, responseCallback);
+        this.executeMethod(remove, responseTimeoutMs);
+    }
+
     private void registerFetcher(int fetchId, FetchEventCallback callback) {
         synchronized (openFetches) {
             openFetches.put(fetchId, callback);
@@ -216,6 +273,18 @@ public class JetPeer implements Peer, Observer, Closeable {
     private void unregisterStateCallback(String path) {
         synchronized (stateCallbacks) {
             stateCallbacks.remove(path);
+        }
+    }
+    
+    private void registerMethodCallback(String path, MethodCallback callback) {
+        synchronized (methodCallbacks) {
+            methodCallbacks.put(path, callback);
+        }
+    }
+
+    private void unregisterMethodCallback(String path) {
+        synchronized (methodCallbacks) {
+            methodCallbacks.remove(path);
         }
     }
 
@@ -453,7 +522,7 @@ public class JetPeer implements Peer, Observer, Closeable {
             JsonObject response = new JsonObject();
             response.addProperty("id", method.getRequestId());
             response.addProperty("jsonrpc", "2.0");
-            
+
             JsonObject error = new JsonObject();
             error.addProperty("code", -32100);
             error.addProperty("message", "timeout while waiting for response");
