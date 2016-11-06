@@ -16,6 +16,7 @@ include 'api'
 include 'services:webservice'
 */
 
+include 'examples/addMethod'
 include 'examples/addState'
 include 'examples/call'
 include 'examples/change'

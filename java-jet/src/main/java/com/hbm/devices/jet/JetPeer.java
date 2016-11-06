@@ -502,7 +502,25 @@ public class JetPeer implements Peer, Observer, Closeable {
         }
     }
 
-    private void handleMethod(JsonObject object, String path) {
+    private void handleMethod(JsonObject object, String path) throws JsonRpcException {
+        MethodCallback callback;
+
+        synchronized (methodCallbacks) {
+            callback = methodCallbacks.get(path);
+        }
+
+        if (callback != null) {
+            JsonElement parameters = object.get("params");
+            if (parameters == null) {
+                throw new JsonRpcException(JsonRpcException.INVALID_PARAMS, "no parameters in json");
+            }
+            
+            JsonElement result = callback.onMethodCalled(path, parameters);
+
+            JsonObject resultObject = new JsonObject();
+            resultObject.add("result", result);
+            sendResponse(object, resultObject);
+        }
     }
 
     private class ResponseTimeoutTask implements Callable<Void> {
