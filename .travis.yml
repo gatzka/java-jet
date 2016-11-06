@@ -5,6 +5,10 @@ branches:
   - "/^feature.*$/"
 jdk:
 - oraclejdk7
+env:
+  global:
+    - secure: Cae9tcMEiwk4yPvraZKEy5r051jDz1JmDYCIzX+h+wz3CaRJaTHf1J4K6u9Uv/H2wAe1iPnC/Z1nk4sF0wsuNrQQzP35V0i42tLlFMNoPkZOvlOKDaQHdMx/9YTf29VM83/FCmLwsxYhOqV7ZpKK03zRD8RyWEwOwZ+wXj9Rk3z1qAhRyCSKZpLtcUVp7YD5PwV0Rm2AJ2EI9OADPD8hfOClWXVpC54bWtguGxrWy2T9F83PHPMqHsIMubHLa7EtuBvVVxlCZh0wOysvYMGmONV29mAMLtyW5FLaes9C9Ab1gFZj1T1mdQRikPZ4uyVBGURo1mvbGrjirJEmsA/slQVBB8LIFDSAXrHuvpOyvqZbJfP15eImsfEX7DBL24MHnS7hETqRmbxxmVXCC4z3/9PHJhSE+IXLBTEUr4h/sAE5f/ulV/f34ivUyMBiuTkr1aQwjO+n4Miy6x2Bp8BEsfacAUXUhApboppatxIeBovJSi7EMj2h6hEOB0ORuOVB6m5OQune00/c7jE5FmSx2n0aYKs/BzHWxJY/OG6ruDKykbK1DeP/5Lv4UhvMwJjLu1Ot9vvDqae+N4fSmpVFgKqF8ifg3XrX0Ky/rEieI73/VOGY1PqBIwm7oVWdyTKqSAWmk5kthVnxxcO/OCDF4pTo4LKkj0eqr93Ht9CaH1A=
+
 addons:
   coverity_scan:
     project:
@@ -14,6 +18,3 @@ addons:
     build_command_prepend: "./gradlew clean"
     build_command: "./gradlew compileJava"
     branch_pattern: coverity_scan
-env:
-  global:
-    - secure: q4mrIb55DtO+997cBrmosUt7idloVoYCrmzRoMjL+TY+PuqBndkuEP9cJiXCfV9btRTWgMhOBY8Ixf3VQqSIIeYScLLJ3lnLhXk5p7nBEPvyqndSGMvysxUeF3ZywHrSQnEbGZAHWQv16Ys0VSd3KbNTUt4FJiB6oR6R1u1t3deQIeDjEiVY8JQ/ypz8Ax1PKpoUsvOwFs25KSobysDWmCjGwvGzSdHV+TkLOiqjiLTkq8f9+ZLw12+TEaTcln44oXHkszQJjc4q9IzZJDAp7sRMtpWtH1Jk/THcsr+OW6e1AEzrgahsLNllltaCVejovbFYKWszWB6C1RzIT11e0EGg9+SimwI/D/kbIdCfaKQv8AtliG9yufCd3+KegO1xgk2XQjaEEJ1nDyqX0Ak73MmWzsV8+bTErbZe+Wuw0T2B/Arj8fkmHlNHTUSh7GwWGv2k4uAQNRRcgjJdMhq0gZz/WBrYL7vL86vnBymfeDJkQ/bI+dX/gI0dx6pi4Sd2xvLhRz7tBbj64oCwpWnbD7M6oL8pkPtUrTnls4hdMVGa5F9ktvSXXNzwqZj2cCJHOpCz23D7m8Oj6zODSCbqh1u3wjKkyrC399/Fez7GTeyTL6Ln78yuqmzV0C6byGWDyWEMLd8o2N33zdUC7u7eGut5hwScyPHbRgcscDp/wHs=
