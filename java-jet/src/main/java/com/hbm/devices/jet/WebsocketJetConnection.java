@@ -38,6 +38,7 @@ public class WebsocketJetConnection extends JetConnection {
     private WebSocket ws;
     private SSLContext context;
     private ConnectionCompleted completed;
+    private boolean connected;
 
     public WebsocketJetConnection(final String url, final SSLContext sslContext) {
         this(url);
@@ -46,6 +47,7 @@ public class WebsocketJetConnection extends JetConnection {
 
     public WebsocketJetConnection(final String url) {
         this.url = url;
+        this.connected = false;
     }
 
     @Override
@@ -69,6 +71,7 @@ public class WebsocketJetConnection extends JetConnection {
 
     @Override
     public void disconnect() {
+        this.connected = false;
         ws.disconnect(WebSocketCloseCode.AWAY, "Closing Java-Jet-Peer");
     }
 
@@ -77,8 +80,16 @@ public class WebsocketJetConnection extends JetConnection {
         ws.sendText(message);
     }
 
+    @Override
+    public boolean isConnected() {
+        return this.connected;
+    }
+
     void connectCompleted(boolean success) {
         this.completed.completed(success);
+        if (success) {
+            this.connected = true;
+        }
     }
 
     void onTextMessage(String text) {

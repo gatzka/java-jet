@@ -31,5 +31,7 @@ public abstract class JetConnection extends Observable {
 
     abstract void disconnect();
 
+    abstract boolean isConnected();
+
     abstract void sendMessage(String message);
 }
