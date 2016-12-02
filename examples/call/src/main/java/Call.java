@@ -52,7 +52,6 @@ public class Call {
             } catch (IOException ex) {
                 Logger.getLogger(Call.class.getName()).log(Level.SEVERE, null, ex);
             }
-            peer.disconnect();
             try {
                 peer.close();
             } catch (IOException ex) {

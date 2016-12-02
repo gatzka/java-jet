@@ -31,10 +31,10 @@ public interface Peer extends Closeable {
 
     @Override
     public void close() throws IOException;
-    
+
     public void connect(ConnectionCompleted connectionCompleted, int responseTimeoutMs);
 
-    public void disconnect();
+    public boolean isConnected();
 
     public FetchId fetch(Matcher matcher, FetchEventCallback callback, ResponseCallback responseCallback, int responseTimeoutMs);
 

@@ -57,7 +57,6 @@ public class Connect {
             } catch (IOException ex) {
                 Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, null, ex);
             }
-            peer.disconnect();
             try {
                 peer.close();
             } catch (IOException ex) {

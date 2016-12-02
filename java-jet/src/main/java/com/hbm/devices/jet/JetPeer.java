@@ -92,9 +92,8 @@ public class JetPeer implements Peer, Observer, Closeable {
     }
 
     @Override
-    public void disconnect() {
-        this.connection.deleteObserver(this);
-        this.connection.disconnect();
+    public boolean isConnected() {
+        return this.connection.isConnected();
     }
 
     @Override
@@ -252,6 +251,11 @@ public class JetPeer implements Peer, Observer, Closeable {
         parameters.addProperty("path", path);
         JetMethod remove = new JetMethod(JetMethod.REMOVE, parameters, responseCallback);
         this.executeMethod(remove, responseTimeoutMs);
+    }
+
+    private void disconnect() {
+        this.connection.deleteObserver(this);
+        this.connection.disconnect();
     }
 
     private void registerFetcher(int fetchId, FetchEventCallback callback) {
