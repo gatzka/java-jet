@@ -80,6 +80,8 @@ public class JetPeer implements Peer, Observer, Closeable {
         } catch (InterruptedException ie) {
             executor.shutdownNow();
             Thread.currentThread().interrupt();
+        } finally {
+            this.disconnect();
         }
     }
 
