@@ -97,6 +97,15 @@ public class JetPeer implements Peer, Observer, Closeable {
     }
 
     @Override
+    public void authenticate(final String user, final String password, ResponseCallback responseCallback, int timeoutMs) {
+        JsonObject credentials = new JsonObject();
+        credentials.addProperty("user", user);
+        credentials.addProperty("password", password);
+        JetMethod auth = new JetMethod(JetMethod.AUTHENTICATE, credentials, responseCallback);
+        this.executeMethod(auth, timeoutMs);
+    }
+
+    @Override
     public void set(String path, JsonElement value, ResponseCallback responseCallback, int timeoutMs) {
         if ((path == null) || (path.length() == 0)) {
             throw new IllegalArgumentException("path");
