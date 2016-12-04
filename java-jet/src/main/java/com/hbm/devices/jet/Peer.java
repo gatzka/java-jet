@@ -36,6 +36,8 @@ public interface Peer extends Closeable {
 
     public boolean isConnected();
 
+    public void authenticate(final String user, final String password, ResponseCallback responseCallback, int timeoutMs);
+    
     public FetchId fetch(Matcher matcher, FetchEventCallback callback, ResponseCallback responseCallback, int responseTimeoutMs);
 
     public void unfetch(FetchId id, ResponseCallback responseCallback, int responseTimeoutMs);
@@ -44,11 +46,15 @@ public interface Peer extends Closeable {
 
     public void addState(String path, JsonElement value, StateCallback stateCallback, int stateSetTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs);
 
+    public void addState(String path, JsonElement value, String[] setGroups, String[] fetchGroups, StateCallback stateCallback, int stateSetTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs);
+
     public void removeState(String path, ResponseCallback responseCallback, int responseTimeoutMs);
     
     public void change(String path, JsonElement value, ResponseCallback responseCallback, int responseTimeoutMs);
 
     public void addMethod(String path, MethodCallback methodCallback, int methodCallTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs);
+    
+    public void addMethod(String path, String[] callGroups, String[] fetchGroups, MethodCallback methodCallback, int methodCallTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs);
     
     public void removeMethod(String path, ResponseCallback responseCallback, int responseTimeoutMs);
     

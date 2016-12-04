@@ -97,6 +97,15 @@ public class JetPeer implements Peer, Observer, Closeable {
     }
 
     @Override
+    public void authenticate(final String user, final String password, ResponseCallback responseCallback, int timeoutMs) {
+        JsonObject credentials = new JsonObject();
+        credentials.addProperty("user", user);
+        credentials.addProperty("password", password);
+        JetMethod auth = new JetMethod(JetMethod.AUTHENTICATE, credentials, responseCallback);
+        this.executeMethod(auth, timeoutMs);
+    }
+
+    @Override
     public void set(String path, JsonElement value, ResponseCallback responseCallback, int timeoutMs) {
         if ((path == null) || (path.length() == 0)) {
             throw new IllegalArgumentException("path");
@@ -118,6 +127,11 @@ public class JetPeer implements Peer, Observer, Closeable {
 
     @Override
     public void addState(String path, JsonElement value, StateCallback stateCallback, int stateSetTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs) {
+        addState(path, value, null, null, stateCallback, stateSetTimeoutMs, responseCallback, responseTimeoutMs);
+    }
+     
+    @Override
+    public void addState(String path, JsonElement value, String[] setGroups, String[] fetchGroups, StateCallback stateCallback, int stateSetTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs) {
         if ((path == null) || (path.length() == 0)) {
             throw new IllegalArgumentException("path");
         }
@@ -132,6 +146,13 @@ public class JetPeer implements Peer, Observer, Closeable {
             registerStateCallback(path, stateCallback);
         }
 
+        if ((setGroups != null) && (setGroups.length > 0) || ((fetchGroups != null) && (fetchGroups.length > 0))) {
+            JsonObject access = new JsonObject();
+            parameters.add("access", access);
+            access.add("setGroups", createJsonArray(setGroups));
+            access.add("fetchGroups", createJsonArray(fetchGroups));
+        }
+        
         JetMethod add = new JetMethod(JetMethod.ADD, parameters, responseCallback);
         this.executeMethod(add, responseTimeoutMs);
     }
@@ -222,7 +243,12 @@ public class JetPeer implements Peer, Observer, Closeable {
 
     @Override
     public void addMethod(String path, MethodCallback methodCallback, int methodCallTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs) {
-        if ((path == null) || (path.length() == 0)) {
+        addMethod(path, null, null, methodCallback, methodCallTimeoutMs, responseCallback, responseTimeoutMs);
+    }
+    
+    @Override
+    public void addMethod(String path, String[] callGroups, String[] fetchGroups, MethodCallback methodCallback, int methodCallTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs) {
+         if ((path == null) || (path.length() == 0)) {
             throw new IllegalArgumentException("path");
         }
 
@@ -235,6 +261,13 @@ public class JetPeer implements Peer, Observer, Closeable {
  
         registerMethodCallback(path, methodCallback);
 
+        if ((callGroups != null) && (callGroups.length > 0) || ((fetchGroups != null) && (fetchGroups.length > 0))) {
+            JsonObject access = new JsonObject();
+            parameters.add("access", access);
+            access.add("callGroups", createJsonArray(callGroups));
+            access.add("fetchGroups", createJsonArray(fetchGroups));
+        }
+                
         JetMethod add = new JetMethod(JetMethod.ADD, parameters, responseCallback);
         this.executeMethod(add, responseTimeoutMs);
     }
@@ -527,6 +560,14 @@ public class JetPeer implements Peer, Observer, Closeable {
             resultObject.add("result", result);
             sendResponse(object, resultObject);
         }
+    }
+
+    private JsonElement createJsonArray(String[] group) {
+        final JsonArray array = new JsonArray();
+        for(String entry : group) {
+            array.add(entry);
+        }
+        return array;
     }
 
     private class ResponseTimeoutTask implements Callable<Void> {
