@@ -45,9 +45,10 @@ public class AddState {
     public static void main(String[] args) {
         try {
             SSLContext context = NaiveSSLContext.getInstance("TLS");
-            JetConnection connection = new WebsocketJetConnection("ws://cjet-raspi", context);
+            //JetConnection connection = new WebsocketJetConnection("ws://localhost:11123", context);
+            JetConnection connection = new WebsocketJetConnection("ws://localhost:11123/api/jet/");
             Peer peer = new JetPeer(connection);
-            JetHandler handler = new JetHandler(peer);
+            ConnectionHandler handler = new ConnectionHandler(peer);
             peer.connect(handler, 5000);
 
             try {
@@ -66,28 +67,15 @@ public class AddState {
     }
 }
 
-class JetHandler implements ConnectionCompleted, ResponseCallback, StateCallback {
-
-    private final Peer peer;
-
-    JetHandler(Peer peer) {
-        this.peer = peer;
-    }
-
-    @Override
-    public void completed(boolean success) {
-        if (success) {
-            Logger.getLogger(AddState.class.getName()).log(Level.INFO, "AddState Connection completed!");
-            JsonPrimitive value = new JsonPrimitive(42);
-            peer.addState("theState", value, this, 1000, this, 5000);
-        } else {
-            Logger.getLogger(AddState.class.getName()).log(Level.SEVERE, "Connection failed!");
-        }
-    }
+class StateHandler implements ResponseCallback, StateCallback {
 
     @Override
     public void onResponse(boolean completed, JsonObject response) {
-        Logger.getLogger(AddState.class.getName()).log(Level.INFO, "completed: {0} response: {1}", new Object[]{completed, response});
+        if (completed) {
+            Logger.getLogger(AddState.class.getName()).log(Level.INFO, "completed: {0} response: {1}", new Object[]{completed, response});            
+        } else {
+            Logger.getLogger(AddState.class.getName()).log(Level.SEVERE, "Adding state failed!");
+        }
     }
 
     @Override
@@ -102,6 +90,44 @@ class JetHandler implements ConnectionCompleted, ResponseCallback, StateCallback
             }
         } catch (ClassCastException | IllegalStateException e) {
             throw new JsonRpcException(JsonRpcException.INVALID_PARAMS, e.getMessage());
+        }
+    }  
+}
+
+class AuthHandler implements ResponseCallback {
+    private final Peer peer;
+    
+    AuthHandler(final Peer peer) {
+        this.peer = peer;
+    }
+
+    @Override
+    public void onResponse(boolean completed, JsonObject response) {
+        if (completed) {
+            StateHandler stateHandler = new StateHandler();
+            JsonPrimitive value = new JsonPrimitive(42);
+            peer.addState("theState", value, stateHandler, 1000, stateHandler, 5000);
+        } else {
+            Logger.getLogger(AddState.class.getName()).log(Level.SEVERE, "Authentication failed!");
+        }
+    }
+}
+
+class ConnectionHandler implements ConnectionCompleted {
+    private final Peer peer;
+
+    ConnectionHandler(Peer peer) {
+        this.peer = peer;
+    }
+
+    @Override
+    public void completed(boolean success) {
+        if (success) {
+            Logger.getLogger(AddState.class.getName()).log(Level.INFO, "AddState Connection completed!");
+            AuthHandler authHandler = new AuthHandler(peer);
+            peer.authenticate("john", "doe", authHandler, 5000);
+        } else {
+            Logger.getLogger(AddState.class.getName()).log(Level.SEVERE, "Connection failed!");
         }
     }
 }
