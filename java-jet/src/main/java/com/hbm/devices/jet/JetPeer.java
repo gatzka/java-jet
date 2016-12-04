@@ -34,9 +34,13 @@ import com.google.gson.JsonSyntaxException;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -51,6 +55,7 @@ public class JetPeer implements Peer, Observer, Closeable {
     private final Map<Integer, JetMethod> openRequests;
     private final Map<String, StateCallback> stateCallbacks;
     private final Map<String, MethodCallback> methodCallbacks;
+    private final Set<FetchId> allFetches;
     private final Gson gson;
     private final JsonParser parser;
     private final ScheduledThreadPoolExecutor executor;
@@ -64,6 +69,7 @@ public class JetPeer implements Peer, Observer, Closeable {
         this.openRequests = new HashMap<>();
         this.stateCallbacks = new HashMap<>();
         this.methodCallbacks = new HashMap<>();
+        this.allFetches = new HashSet<>();
         this.gson = new GsonBuilder().create();
         this.parser = new JsonParser();
     }
@@ -192,7 +198,7 @@ public class JetPeer implements Peer, Observer, Closeable {
 
     @Override
     public FetchId fetch(Matcher matcher, FetchEventCallback callback, ResponseCallback responseCallback, int timeoutMs) {
-        FetchId fetchId = new FetchId();
+        final FetchId fetchId = new FetchId();
 
         JsonObject parameters = new JsonObject();
         JsonObject path = fillPath(matcher);
@@ -206,6 +212,7 @@ public class JetPeer implements Peer, Observer, Closeable {
         this.registerFetcher(fetchId.getId(), callback);
         this.executeMethod(fetch, timeoutMs);
 
+        registerFetchId(fetchId);
         return fetchId;
     }
 
@@ -217,6 +224,7 @@ public class JetPeer implements Peer, Observer, Closeable {
         parameters.addProperty("id", id.getId());
         JetMethod unfetch = new JetMethod(JetMethod.UNFETCH, parameters, responseCallback);
         this.executeMethod(unfetch, responseTimeoutMs);
+        unRegisterFetchId(id);
     }
 
     @Override
@@ -287,6 +295,10 @@ public class JetPeer implements Peer, Observer, Closeable {
     }
 
     private void disconnect() {
+        removeAllStates();
+        removeAllMethods();
+        removeAllFetches();
+        
         this.connection.deleteObserver(this);
         this.connection.disconnect();
     }
@@ -324,6 +336,18 @@ public class JetPeer implements Peer, Observer, Closeable {
     private void unregisterMethodCallback(String path) {
         synchronized (methodCallbacks) {
             methodCallbacks.remove(path);
+        }
+    }
+    
+    private void registerFetchId(FetchId fetchId) {
+        synchronized (allFetches) {
+            allFetches.add(fetchId);
+        }
+    }
+
+    private void unRegisterFetchId(FetchId id) {
+        synchronized (allFetches) {
+            allFetches.remove(id);
         }
     }
 
@@ -568,6 +592,36 @@ public class JetPeer implements Peer, Observer, Closeable {
             array.add(entry);
         }
         return array;
+    }
+
+    private void removeAllStates() {
+        synchronized (stateCallbacks) {
+            final Iterator it = stateCallbacks.entrySet().iterator();
+            while(it.hasNext()) {
+                final Entry entry = (Entry) it.next();
+                removeState((String)entry.getKey(), null, 0);
+            }
+        }
+    }
+
+    private void removeAllMethods() {
+        synchronized (methodCallbacks) {
+            final Iterator it = methodCallbacks.entrySet().iterator();
+            while(it.hasNext()) {
+                final Entry entry = (Entry) it.next();
+                removeMethod((String)entry.getKey(), null, 0);
+            }
+        }
+    }
+
+    private void removeAllFetches() {
+        synchronized (allFetches) {
+            final Iterator<FetchId> it = allFetches.iterator();
+            while (it.hasNext()) {
+                final FetchId id = it.next();
+                unfetch(id, null, 0);
+            }
+        }
     }
 
     private class ResponseTimeoutTask implements Callable<Void> {
