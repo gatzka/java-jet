@@ -27,10 +27,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class FetchId {
 
-    private static AtomicInteger fetchIdCounter = new AtomicInteger();
-    ;
+    private static final AtomicInteger fetchIdCounter = new AtomicInteger();
 
-    private int fetchId;
+    private final int fetchId;
 
     public FetchId() {
         this.fetchId = fetchIdCounter.incrementAndGet();
