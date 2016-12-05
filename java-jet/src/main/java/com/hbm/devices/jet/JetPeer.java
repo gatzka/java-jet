@@ -103,6 +103,14 @@ public class JetPeer implements Peer, Observer, Closeable {
     }
 
     @Override
+    public void config(final String peerName, ResponseCallback responseCallback, int timeoutMs) {
+        JsonObject parameters = new JsonObject();
+        parameters.addProperty("name", peerName);
+        JetMethod config = new JetMethod(JetMethod.CONFIG, parameters, responseCallback);
+        this.executeMethod(config, timeoutMs);
+    }
+
+    @Override
     public void authenticate(final String user, final String password, ResponseCallback responseCallback, int timeoutMs) {
         JsonObject credentials = new JsonObject();
         credentials.addProperty("user", user);

@@ -38,6 +38,7 @@ class JetMethod {
     static final String ADD = "add";
     static final String REMOVE = "remove";
     static final String CHANGE = "change";
+    static final String CONFIG = "config";
 
     private static final AtomicInteger REQUEST_ID_ROUNTER = new AtomicInteger();
 
