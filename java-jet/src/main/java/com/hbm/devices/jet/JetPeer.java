@@ -178,11 +178,7 @@ public class JetPeer implements Peer, Observer, Closeable {
         }
 
         unregisterStateCallback(path);
-
-        JsonObject parameters = new JsonObject();
-        parameters.addProperty("path", path);
-        JetMethod remove = new JetMethod(JetMethod.REMOVE, parameters, responseCallback);
-        this.executeMethod(remove, responseTimeoutMs);
+        sendRemove(path, responseCallback, responseTimeoutMs);
     }
 
     @Override
@@ -227,12 +223,8 @@ public class JetPeer implements Peer, Observer, Closeable {
     @Override
     public void unfetch(FetchId id, ResponseCallback responseCallback, int responseTimeoutMs) {
         this.unregisterFetcher(id.getId());
-
-        JsonObject parameters = new JsonObject();
-        parameters.addProperty("id", id.getId());
-        JetMethod unfetch = new JetMethod(JetMethod.UNFETCH, parameters, responseCallback);
-        this.executeMethod(unfetch, responseTimeoutMs);
         unRegisterFetchId(id);
+        sendUnfetch(id, responseCallback, responseTimeoutMs);
     }
 
     @Override
@@ -295,11 +287,7 @@ public class JetPeer implements Peer, Observer, Closeable {
         }
 
         unregisterMethodCallback(path);
-
-        JsonObject parameters = new JsonObject();
-        parameters.addProperty("path", path);
-        JetMethod remove = new JetMethod(JetMethod.REMOVE, parameters, responseCallback);
-        this.executeMethod(remove, responseTimeoutMs);
+        sendRemove(path, responseCallback, responseTimeoutMs);
     }
 
     private void disconnect() {
@@ -357,6 +345,35 @@ public class JetPeer implements Peer, Observer, Closeable {
         synchronized (allFetches) {
             allFetches.remove(id);
         }
+    }
+
+    private void removeIterator(final Iterator it) {
+        final Entry entry = (Entry) it.next();
+        final String path = (String) entry.getKey();
+        it.remove();
+
+        sendRemove(path, null, 0);
+    }
+
+    private void unfetchIterator(final Iterator it) {
+        final FetchId id = (FetchId) it.next();
+        it.remove();
+
+        sendUnfetch(id, null, 0);
+    }
+
+    private void sendUnfetch(final FetchId id, ResponseCallback responseCallback, int responseTimeoutMs) {
+        JsonObject parameters = new JsonObject();
+        parameters.addProperty("id", id.getId());
+        JetMethod unfetch = new JetMethod(JetMethod.UNFETCH, parameters, responseCallback);
+        this.executeMethod(unfetch, responseTimeoutMs);
+    }
+
+    private void sendRemove(String path, ResponseCallback responseCallback, int responseTimeoutMs) {
+        JsonObject parameters = new JsonObject();
+        parameters.addProperty("path", path);
+        JetMethod remove = new JetMethod(JetMethod.REMOVE, parameters, responseCallback);
+        this.executeMethod(remove, responseTimeoutMs);
     }
 
     private void executeMethod(JetMethod method, int timeoutMs) {
@@ -606,8 +623,7 @@ public class JetPeer implements Peer, Observer, Closeable {
         synchronized (stateCallbacks) {
             final Iterator it = stateCallbacks.entrySet().iterator();
             while(it.hasNext()) {
-                final Entry entry = (Entry) it.next();
-                removeState((String)entry.getKey(), null, 0);
+                removeIterator(it);
             }
         }
     }
@@ -616,8 +632,7 @@ public class JetPeer implements Peer, Observer, Closeable {
         synchronized (methodCallbacks) {
             final Iterator it = methodCallbacks.entrySet().iterator();
             while(it.hasNext()) {
-                final Entry entry = (Entry) it.next();
-                removeMethod((String)entry.getKey(), null, 0);
+                removeIterator(it);
             }
         }
     }
@@ -626,8 +641,7 @@ public class JetPeer implements Peer, Observer, Closeable {
         synchronized (allFetches) {
             final Iterator<FetchId> it = allFetches.iterator();
             while (it.hasNext()) {
-                final FetchId id = it.next();
-                unfetch(id, null, 0);
+                unfetchIterator(it);
             }
         }
     }
