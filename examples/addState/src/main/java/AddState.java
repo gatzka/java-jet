@@ -84,6 +84,7 @@ class StateHandler implements ResponseCallback, StateCallback {
             int newValue = value.getAsInt();
             if (newValue % 10 != 0) {
                 newValue = ((newValue + 5) / 10) * 10;
+                Logger.getLogger(AddState.class.getName()).log(Level.INFO, "setting state to: {0}", new Object[]{newValue});            
                 return new JsonPrimitive(newValue);
             } else {
                 return null;
@@ -104,11 +105,34 @@ class AuthHandler implements ResponseCallback {
     @Override
     public void onResponse(boolean completed, JsonObject response) {
         if (completed) {
+            Logger.getLogger(AddState.class.getName()).log(Level.INFO, "Authentication completed!");
             StateHandler stateHandler = new StateHandler();
             JsonPrimitive value = new JsonPrimitive(42);
-            peer.addState("theState", value, stateHandler, 1000, stateHandler, 5000);
+            String[] fetchGroups = new String[] {"admin", "public"};
+            //String[] fetchGroups = new String[] {"public", "users", "john"};
+            String[] setGroups = new String[] {"admin", "bob"};
+            peer.addState("theState", value, setGroups, fetchGroups, stateHandler, 1000, stateHandler, 5000);
         } else {
             Logger.getLogger(AddState.class.getName()).log(Level.SEVERE, "Authentication failed!");
+        }
+    }
+}
+
+class ConfigHandler implements ResponseCallback {
+    private final Peer peer;
+    
+    ConfigHandler(final Peer peer) {
+        this.peer = peer;
+    }
+
+    @Override
+    public void onResponse(boolean completed, JsonObject response) {
+        if (completed) {
+            Logger.getLogger(AddState.class.getName()).log(Level.INFO, "AddState Config completed!");
+            AuthHandler authHandler = new AuthHandler(peer);
+            peer.authenticate("john", "doe", authHandler, 5000);
+        } else {
+            Logger.getLogger(AddState.class.getName()).log(Level.SEVERE, "AddState Config failed!");
         }
     }
 }
@@ -124,8 +148,8 @@ class ConnectionHandler implements ConnectionCompleted {
     public void completed(boolean success) {
         if (success) {
             Logger.getLogger(AddState.class.getName()).log(Level.INFO, "AddState Connection completed!");
-            AuthHandler authHandler = new AuthHandler(peer);
-            peer.authenticate("john", "doe", authHandler, 5000);
+            ConfigHandler configHandler = new ConfigHandler(peer);
+            peer.config(AddState.class.getName(), configHandler, 5000);
         } else {
             Logger.getLogger(AddState.class.getName()).log(Level.SEVERE, "Connection failed!");
         }

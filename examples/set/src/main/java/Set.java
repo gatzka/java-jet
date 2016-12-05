@@ -42,9 +42,10 @@ public class Set {
     public static void main(String[] args) {
         try {
             SSLContext context = NaiveSSLContext.getInstance("TLS");
-            JetConnection connection = new WebsocketJetConnection("ws://cjet-raspi", context);
+            //JetConnection connection = new WebsocketJetConnection("ws://cjet-raspi", context);
+            JetConnection connection = new WebsocketJetConnection("ws://localhost:11123/api/jet/");
             Peer peer = new JetPeer(connection);
-            JetHandler handler = new JetHandler(peer);
+            ConnectionHandler handler = new ConnectionHandler(peer);
             peer.connect(handler, 5000);
 
             try {
@@ -63,23 +64,51 @@ public class Set {
     }
 }
 
-class JetHandler implements ConnectionCompleted, ResponseCallback {
-
+class ConnectionHandler implements ConnectionCompleted {
     private final Peer peer;
 
-    JetHandler(Peer peer) {
+    ConnectionHandler(Peer peer) {
         this.peer = peer;
     }
 
     @Override
     public void completed(boolean success) {
         if (success) {
-            Logger.getLogger(Set.class.getName()).log(Level.INFO, "Set Connection completed!");
-            JsonPrimitive value = new JsonPrimitive(42);
-            peer.set("theState", value, this, 5000);
+            Logger.getLogger(Set.class.getName()).log(Level.INFO, "setState Connection completed!");
+            AuthHandler authHandler = new AuthHandler(peer);
+            peer.authenticate("john", "doe", authHandler, 5000);
         } else {
-            Logger.getLogger(Set.class.getName()).log(Level.SEVERE, "Set Connection failed!");
+            Logger.getLogger(Set.class.getName()).log(Level.SEVERE, "setState Connection failed!");
         }
+    }
+}
+
+class AuthHandler implements ResponseCallback {
+    private final Peer peer;
+    
+    AuthHandler(final Peer peer) {
+        this.peer = peer;
+    }
+
+    @Override
+    public void onResponse(boolean completed, JsonObject response) {
+        if (completed) {
+            Logger.getLogger(Set.class.getName()).log(Level.INFO, "Set Authentication completed!");
+            JetHandler handler = new JetHandler(peer);
+            JsonPrimitive value = new JsonPrimitive(42);
+            peer.set("theState", value, handler, 5000);
+        } else {
+            Logger.getLogger(Set.class.getName()).log(Level.SEVERE, "Set Authentication failed!");
+        }
+    }
+}
+
+class JetHandler implements ResponseCallback {
+
+    private final Peer peer;
+
+    JetHandler(Peer peer) {
+        this.peer = peer;
     }
 
     @Override

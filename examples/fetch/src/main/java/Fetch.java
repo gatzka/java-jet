@@ -46,9 +46,10 @@ public class Fetch {
     public static void main(String[] args) {
         try {
             SSLContext context = NaiveSSLContext.getInstance("TLS");
-            JetConnection connection = new WebsocketJetConnection("ws://cjet-raspi", context);
+            //JetConnection connection = new WebsocketJetConnection("ws://cjet-raspi", context);
+            JetConnection connection = new WebsocketJetConnection("ws://localhost:11123/api/jet/");
             Peer peer = new JetPeer(connection);
-            JetHandler handler = new JetHandler(peer);
+            ConnectionHandler handler = new ConnectionHandler(peer);
             peer.connect(handler, 5000);
 
             try {
@@ -67,25 +68,12 @@ public class Fetch {
     }
 }
 
-class JetHandler implements ConnectionCompleted, FetchEventCallback, ResponseCallback {
+class JetHandler implements FetchEventCallback, ResponseCallback {
 
     private Peer peer;
 
     JetHandler(Peer peer) {
         this.peer = peer;
-    }
-
-    @Override
-    public void completed(boolean success) {
-        if (success) {
-            Logger.getLogger(Fetch.class.getName()).log(Level.INFO, "Fetch Connection completed!");
-            Matcher matcher = new Matcher();
-            matcher.startsWith = "theState";
-            FetchId id = peer.fetch(matcher, this, this, 5000);
-            peer.unfetch(id, this, 5000);
-        } else {
-            Logger.getLogger(Fetch.class.getName()).log(Level.SEVERE, "Fetch Connection failed!");
-        }
     }
 
     @Override
@@ -96,5 +84,64 @@ class JetHandler implements ConnectionCompleted, FetchEventCallback, ResponseCal
     @Override
     public void onFetchEvent(JsonObject params) {
         Logger.getLogger(Fetch.class.getName()).log(Level.INFO, "fetch event: {0}", params);
+    }
+}
+
+class AuthHandler implements ResponseCallback {
+    private final Peer peer;
+    
+    AuthHandler(final Peer peer) {
+        this.peer = peer;
+    }
+
+    @Override
+    public void onResponse(boolean completed, JsonObject response) {
+        if (completed) {
+            Logger.getLogger(Fetch.class.getName()).log(Level.INFO, "Authentication completed!");
+            JetHandler jetHandler = new JetHandler(peer);
+            Matcher matcher = new Matcher();
+            matcher.startsWith = "theState";
+            peer.fetch(matcher, jetHandler, jetHandler, 5000);
+        } else {
+            Logger.getLogger(Fetch.class.getName()).log(Level.SEVERE, "Authentication failed!");
+        }
+    }
+}
+
+class ConfigHandler implements ResponseCallback {
+    private final Peer peer;
+    
+    ConfigHandler(final Peer peer) {
+        this.peer = peer;
+    }
+
+    @Override
+    public void onResponse(boolean completed, JsonObject response) {
+        if (completed) {
+            Logger.getLogger(Fetch.class.getName()).log(Level.INFO, "Fetch Config completed!");
+            AuthHandler authHandler = new AuthHandler(peer);
+            peer.authenticate("john", "doe", authHandler, 5000);
+        } else {
+            Logger.getLogger(Fetch.class.getName()).log(Level.SEVERE, "Fetch Config failed!");
+        }
+    }
+}
+
+class ConnectionHandler implements ConnectionCompleted {
+    private final Peer peer;
+
+    ConnectionHandler(Peer peer) {
+        this.peer = peer;
+    }
+
+    @Override
+    public void completed(boolean success) {
+        if (success) {
+            Logger.getLogger(Fetch.class.getName()).log(Level.INFO, "Fetch Connection completed!");
+            ConfigHandler configHandler = new ConfigHandler(peer);
+            peer.config(Fetch.class.getName(), configHandler, 5000);
+        } else {
+            Logger.getLogger(Fetch.class.getName()).log(Level.SEVERE, "Connection failed!");
+        }
     }
 }
