@@ -26,5 +26,16 @@ package com.hbm.devices.jet;
 import com.google.gson.JsonElement;
 
 public interface StateCallback {
+    /**
+     * Callback method that will be called when a state is {@code set} via jet.
+     * 
+     * @param path The key for the the state to be set.
+     * This might be useful to use a single state callback method for multiple
+     * states and to multiplex via path.
+     * @param value The new value that should be {@code set}.
+     * @return The new state value after {@code set}. Should return {@code null}
+     * if the state was not changed.
+     * @throws JsonRpcException 
+     */
     public JsonElement onStateSet(String path, JsonElement value) throws JsonRpcException;
 }
