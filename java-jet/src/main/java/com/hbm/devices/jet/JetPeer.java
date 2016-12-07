@@ -139,11 +139,43 @@ public class JetPeer implements Peer, Observer, Closeable {
         this.executeMethod(set, timeoutMs);
     }
 
+    /**
+     * Adds a state to jet.
+     * 
+     * @param path The key under which the state will be published.
+     * @param value The initial value of the state.
+     * @param stateCallback The method to be called when the state is set via jet.
+     * Pass {@code null} to make the state {@code fetchOnly}. 
+     * @param stateSetTimeoutMs The timeout in milliseconds how long a {@code set}
+     * operation on this state might take before the daemon signals timeout to
+     * the peer calling {@code set}.
+     * @param responseCallback A callback method that will be called if this
+     * method succeeds or fails.
+     * @param responseTimeoutMs The timeout in milliseconds how long the
+     * {@code add} operation might take before failing.
+     */
     @Override
     public void addState(String path, JsonElement value, StateCallback stateCallback, int stateSetTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs) {
         addState(path, value, null, null, stateCallback, stateSetTimeoutMs, responseCallback, responseTimeoutMs);
     }
      
+    /**
+     * Adds a state to jet.
+     * 
+     * @param path The key under which the state will be published.
+     * @param value The initial value of the state.
+     * @param setGroups The list of groups that are allowed to set the state.
+     * @param fetchGroups The list of groups that are allowed to fetch the state.
+     * @param stateCallback The method to be called when the state is set via jet.
+     * Pass {@code null} to make the state {@code fetchOnly}. 
+     * @param stateSetTimeoutMs The timeout in milliseconds how long a {@code set}
+     * operation on this state might take before the daemon signals timeout to
+     * the peer calling {@code set}.
+     * @param responseCallback A callback method that will be called if this
+     * method succeeds or fails.
+     * @param responseTimeoutMs The timeout in milliseconds how long the
+     * {@code add} operation might take before failing.
+     */
     @Override
     public void addState(String path, JsonElement value, String[] setGroups, String[] fetchGroups, StateCallback stateCallback, int stateSetTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs) {
         if ((path == null) || (path.length() == 0)) {
@@ -574,12 +606,11 @@ public class JetPeer implements Peer, Observer, Closeable {
                 throw new JsonRpcException(JsonRpcException.INVALID_PARAMS, "no value in parameter");
             }
 
-            JsonElement newValue = callback.onStateSet(path, value);
-            if (newValue != null) {
-                value = newValue;
+            JsonElement notifyValue = callback.onStateSet(path, value);
+            if (notifyValue != null) {
+                this.change(path, notifyValue, null, 0);
             }
 
-            this.change(path, value, null, 0);
             JsonObject result = new JsonObject();
             result.addProperty("result", true);
             sendResponse(object, result);
