@@ -60,6 +60,8 @@ public class JetPeer implements Peer, Observer, Closeable {
     private final JsonParser parser;
     private final ScheduledThreadPoolExecutor executor;
 
+    private boolean isClosed = false;
+
     private static final Logger LOGGER = Logger.getLogger(JetConstants.LOGGER_NAME);
 
     public JetPeer(JetConnection connection) {
@@ -76,18 +78,20 @@ public class JetPeer implements Peer, Observer, Closeable {
 
     @Override
     public void close() throws IOException {
-        try {
-            if (!executor.awaitTermination(1, TimeUnit.SECONDS)) {
-                executor.shutdownNow();
-                if (!executor.awaitTermination(1, TimeUnit.SECONDS)) {
-                    LOGGER.log(Level.SEVERE, "Interrupted while waiting for termination of timer tasks!\n");
-                }
-            }
-        } catch (InterruptedException ie) {
-            executor.shutdownNow();
-            Thread.currentThread().interrupt();
-        } finally {
+        synchronized (this) {
             this.disconnect();
+            this.isClosed = true;
+            try {
+                if (!executor.awaitTermination(1, TimeUnit.SECONDS)) {
+                    executor.shutdownNow();
+                    if (!executor.awaitTermination(1, TimeUnit.SECONDS)) {
+                        LOGGER.log(Level.SEVERE, "Interrupted while waiting for termination of timer tasks!\n");
+                    }
+                }
+            } catch (InterruptedException ie) {
+                executor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
@@ -99,7 +103,9 @@ public class JetPeer implements Peer, Observer, Closeable {
 
     @Override
     public boolean isConnected() {
-        return this.connection.isConnected();
+        synchronized (this) {
+            return this.connection.isConnected();
+        }
     }
 
     @Override
@@ -141,14 +147,14 @@ public class JetPeer implements Peer, Observer, Closeable {
 
     /**
      * Adds a state to jet.
-     * 
+     *
      * @param path The key under which the state will be published.
      * @param value The initial value of the state.
-     * @param stateCallback The method to be called when the state is set via jet.
-     * Pass {@code null} to make the state {@code fetchOnly}. 
-     * @param stateSetTimeoutMs The timeout in milliseconds how long a {@code set}
-     * operation on this state might take before the daemon signals timeout to
-     * the peer calling {@code set}.
+     * @param stateCallback The method to be called when the state is set via
+     * jet. Pass {@code null} to make the state {@code fetchOnly}.
+     * @param stateSetTimeoutMs The timeout in milliseconds how long a
+     * {@code set} operation on this state might take before the daemon signals
+     * timeout to the peer calling {@code set}.
      * @param responseCallback A callback method that will be called if this
      * method succeeds or fails.
      * @param responseTimeoutMs The timeout in milliseconds how long the
@@ -158,19 +164,20 @@ public class JetPeer implements Peer, Observer, Closeable {
     public void addState(String path, JsonElement value, StateCallback stateCallback, int stateSetTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs) {
         addState(path, value, null, null, stateCallback, stateSetTimeoutMs, responseCallback, responseTimeoutMs);
     }
-     
+
     /**
      * Adds a state to jet.
-     * 
+     *
      * @param path The key under which the state will be published.
      * @param value The initial value of the state.
      * @param setGroups The list of groups that are allowed to set the state.
-     * @param fetchGroups The list of groups that are allowed to fetch the state.
-     * @param stateCallback The method to be called when the state is set via jet.
-     * Pass {@code null} to make the state {@code fetchOnly}. 
-     * @param stateSetTimeoutMs The timeout in milliseconds how long a {@code set}
-     * operation on this state might take before the daemon signals timeout to
-     * the peer calling {@code set}.
+     * @param fetchGroups The list of groups that are allowed to fetch the
+     * state.
+     * @param stateCallback The method to be called when the state is set via
+     * jet. Pass {@code null} to make the state {@code fetchOnly}.
+     * @param stateSetTimeoutMs The timeout in milliseconds how long a
+     * {@code set} operation on this state might take before the daemon signals
+     * timeout to the peer calling {@code set}.
      * @param responseCallback A callback method that will be called if this
      * method succeeds or fails.
      * @param responseTimeoutMs The timeout in milliseconds how long the
@@ -198,7 +205,7 @@ public class JetPeer implements Peer, Observer, Closeable {
             access.add("setGroups", createJsonArray(setGroups));
             access.add("fetchGroups", createJsonArray(fetchGroups));
         }
-        
+
         JetMethod add = new JetMethod(JetMethod.ADD, parameters, responseCallback);
         this.executeMethod(add, responseTimeoutMs);
     }
@@ -285,10 +292,10 @@ public class JetPeer implements Peer, Observer, Closeable {
     public void addMethod(String path, MethodCallback methodCallback, int methodCallTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs) {
         addMethod(path, null, null, methodCallback, methodCallTimeoutMs, responseCallback, responseTimeoutMs);
     }
-    
+
     @Override
     public void addMethod(String path, String[] callGroups, String[] fetchGroups, MethodCallback methodCallback, int methodCallTimeoutMs, ResponseCallback responseCallback, int responseTimeoutMs) {
-         if ((path == null) || (path.length() == 0)) {
+        if ((path == null) || (path.length() == 0)) {
             throw new IllegalArgumentException("path");
         }
 
@@ -298,7 +305,7 @@ public class JetPeer implements Peer, Observer, Closeable {
         JsonObject parameters = new JsonObject();
         parameters.addProperty("path", path);
         parameters.addProperty("timeout", methodCallTimeoutMs / 1000.0);
- 
+
         registerMethodCallback(path, methodCallback);
 
         if ((callGroups != null) && (callGroups.length > 0) || ((fetchGroups != null) && (fetchGroups.length > 0))) {
@@ -307,11 +314,11 @@ public class JetPeer implements Peer, Observer, Closeable {
             access.add("callGroups", createJsonArray(callGroups));
             access.add("fetchGroups", createJsonArray(fetchGroups));
         }
-                
+
         JetMethod add = new JetMethod(JetMethod.ADD, parameters, responseCallback);
         this.executeMethod(add, responseTimeoutMs);
     }
-    
+
     @Override
     public void removeMethod(String path, ResponseCallback responseCallback, int responseTimeoutMs) {
         if ((path == null) || (path.length() == 0)) {
@@ -326,7 +333,7 @@ public class JetPeer implements Peer, Observer, Closeable {
         removeAllStates();
         removeAllMethods();
         removeAllFetches();
-        
+
         this.connection.deleteObserver(this);
         this.connection.disconnect();
     }
@@ -354,7 +361,7 @@ public class JetPeer implements Peer, Observer, Closeable {
             stateCallbacks.remove(path);
         }
     }
-    
+
     private void registerMethodCallback(String path, MethodCallback callback) {
         synchronized (methodCallbacks) {
             methodCallbacks.put(path, callback);
@@ -366,7 +373,7 @@ public class JetPeer implements Peer, Observer, Closeable {
             methodCallbacks.remove(path);
         }
     }
-    
+
     private void registerFetchId(FetchId fetchId) {
         synchronized (allFetches) {
             allFetches.add(fetchId);
@@ -413,19 +420,25 @@ public class JetPeer implements Peer, Observer, Closeable {
             throw new IllegalArgumentException("timeoutMs");
         }
 
-        if (method.hasResponseCallback()) {
-            ResponseTimeoutTask task;
-            task = new ResponseTimeoutTask(method);
-            synchronized (openRequests) {
-                openRequests.put(method.getRequestId(), method);
-                ScheduledFuture<Void> future;
-                future = executor.schedule(task, timeoutMs, TimeUnit.MILLISECONDS);
-                method.addFuture(future);
+        synchronized (this) {
+            if (this.isClosed) {
+                throw new IllegalStateException("Can't call a method on a closed peer!");
             }
-        }
+            
+            if (method.hasResponseCallback()) {
+                ResponseTimeoutTask task;
+                task = new ResponseTimeoutTask(method);
+                synchronized (openRequests) {
+                    openRequests.put(method.getRequestId(), method);
+                    ScheduledFuture<Void> future;
+                    future = executor.schedule(task, timeoutMs, TimeUnit.MILLISECONDS);
+                    method.addFuture(future);
+                }
+            }
 
-        JsonObject json = method.getJson();
-        connection.sendMessage(gson.toJson(json));
+            JsonObject json = method.getJson();
+            connection.sendMessage(gson.toJson(json));
+        }
     }
 
     private JsonObject fillPath(Matcher matcher) {
@@ -633,7 +646,7 @@ public class JetPeer implements Peer, Observer, Closeable {
             if (parameters == null) {
                 throw new JsonRpcException(JsonRpcException.INVALID_PARAMS, "no parameters in json");
             }
-            
+
             JsonElement result = callback.onMethodCalled(path, parameters);
 
             JsonObject resultObject = new JsonObject();
@@ -644,7 +657,7 @@ public class JetPeer implements Peer, Observer, Closeable {
 
     private JsonElement createJsonArray(String[] group) {
         final JsonArray array = new JsonArray();
-        for(String entry : group) {
+        for (String entry : group) {
             array.add(entry);
         }
         return array;
@@ -653,7 +666,7 @@ public class JetPeer implements Peer, Observer, Closeable {
     private void removeAllStates() {
         synchronized (stateCallbacks) {
             final Iterator it = stateCallbacks.entrySet().iterator();
-            while(it.hasNext()) {
+            while (it.hasNext()) {
                 removeIterator(it);
             }
         }
@@ -662,7 +675,7 @@ public class JetPeer implements Peer, Observer, Closeable {
     private void removeAllMethods() {
         synchronized (methodCallbacks) {
             final Iterator it = methodCallbacks.entrySet().iterator();
-            while(it.hasNext()) {
+            while (it.hasNext()) {
                 removeIterator(it);
             }
         }
