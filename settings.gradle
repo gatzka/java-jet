@@ -22,6 +22,7 @@ include 'examples/call'
 include 'examples/change'
 include 'examples/connect'
 include 'examples/fetch'
+include 'examples/get'
 include 'examples/set'
 include 'java-jet'
 

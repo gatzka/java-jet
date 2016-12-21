@@ -33,6 +33,7 @@ class JetMethod {
     static final String INFO = "info";
     static final String SET = "set";
     static final String FETCH = "fetch";
+    static final String GET = "get";
     static final String UNFETCH = "unfetch";
     static final String CALL = "call";
     static final String ADD = "add";

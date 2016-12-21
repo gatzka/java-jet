@@ -260,6 +260,20 @@ public class JetPeer implements Peer, Observer, Closeable {
     }
 
     @Override
+    public void get(Matcher matcher, ResponseCallback responseCallback, int responseTimeoutMs) {
+        JsonObject parameters = new JsonObject();
+        JsonObject path = fillPath(matcher);
+        if (path != null) {
+            parameters.add("path", path);
+        }
+        
+        parameters.addProperty("caseInsensitive", matcher.caseInsensitive);
+
+        JetMethod get = new JetMethod(JetMethod.GET, parameters, responseCallback);
+        this.executeMethod(get, responseTimeoutMs);
+    }
+    
+    @Override
     public void unfetch(FetchId id, ResponseCallback responseCallback, int responseTimeoutMs) {
         this.unregisterFetcher(id.getId());
         unRegisterFetchId(id);
