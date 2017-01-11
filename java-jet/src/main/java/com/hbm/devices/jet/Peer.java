@@ -39,6 +39,7 @@ public interface Peer extends Closeable {
     public void config(final String peerName, ResponseCallback responseCallback, int timeoutMs);
 
     public void authenticate(final String user, final String password, ResponseCallback responseCallback, int timeoutMs);
+    public void passwd(final String user, final String password, ResponseCallback responseCallback, int timeoutMs);
     
     public FetchId fetch(Matcher matcher, FetchEventCallback callback, ResponseCallback responseCallback, int responseTimeoutMs);
     

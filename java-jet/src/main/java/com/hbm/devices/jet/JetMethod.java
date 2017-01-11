@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 class JetMethod {
 
     static final String AUTHENTICATE = "authenticate";
+    static final String PASSWD = "passwd";
     static final String INFO = "info";
     static final String SET = "set";
     static final String FETCH = "fetch";

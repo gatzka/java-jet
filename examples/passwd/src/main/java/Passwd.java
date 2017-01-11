@@ -22,14 +22,17 @@
  * THE SOFTWARE.
  */
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.hbm.devices.jet.ConnectionCompleted;
 import com.hbm.devices.jet.JetConnection;
 import com.hbm.devices.jet.JetPeer;
-import com.hbm.devices.jet.Matcher;
+import com.hbm.devices.jet.JsonRpcException;
 import com.hbm.devices.jet.NaiveSSLContext;
 import com.hbm.devices.jet.Peer;
 import com.hbm.devices.jet.ResponseCallback;
+import com.hbm.devices.jet.StateCallback;
 import com.hbm.devices.jet.WebsocketJetConnection;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -37,12 +40,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.SSLContext;
 
-public class Get {
+public class Passwd {
 
     public static void main(String[] args) {
         try {
             SSLContext context = NaiveSSLContext.getInstance("TLS");
-            //JetConnection connection = new WebsocketJetConnection("ws://cjet-raspi", context);
+            //JetConnection connection = new WebsocketJetConnection("ws://localhost:11123", context);
             JetConnection connection = new WebsocketJetConnection("ws://localhost:11123/api/jet/");
             Peer peer = new JetPeer(connection);
             ConnectionHandler handler = new ConnectionHandler(peer);
@@ -51,30 +54,47 @@ public class Get {
             try {
                 System.in.read();
             } catch (IOException ex) {
-                Logger.getLogger(Get.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Passwd.class.getName()).log(Level.SEVERE, null, ex);
             }
             try {
                 peer.close();
             } catch (IOException ex) {
-                Logger.getLogger(Get.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(Passwd.class.getName()).log(Level.SEVERE, null, ex);
             }
         } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(Get.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Passwd.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }
 
-class JetHandler implements ResponseCallback {
+class PasswdHandler implements ResponseCallback {
 
-    private Peer peer;
+    @Override
+    public void onResponse(boolean completed, JsonObject response) {
+        if (completed) {
+            Logger.getLogger(Passwd.class.getName()).log(Level.INFO, "completed: {0} response: {1}", new Object[]{completed, response});            
+        } else {
+            Logger.getLogger(Passwd.class.getName()).log(Level.SEVERE, "change password failed!");
+        }
+    }
+}
 
-    JetHandler(Peer peer) {
+class AuthHandler implements ResponseCallback {
+    private final Peer peer;
+    
+    AuthHandler(final Peer peer) {
         this.peer = peer;
     }
 
     @Override
     public void onResponse(boolean completed, JsonObject response) {
-        Logger.getLogger(Get.class.getName()).log(Level.INFO, "completed: {0} response: {1}", new Object[]{completed, response});
+        if (completed) {
+            Logger.getLogger(Passwd.class.getName()).log(Level.INFO, "Authentication completed!");
+            PasswdHandler stateHandler = new PasswdHandler();
+            peer.passwd("bob", "bobby", stateHandler, 5000);
+        } else {
+            Logger.getLogger(Passwd.class.getName()).log(Level.SEVERE, "Authentication failed!");
+        }
     }
 }
 
@@ -88,13 +108,11 @@ class ConfigHandler implements ResponseCallback {
     @Override
     public void onResponse(boolean completed, JsonObject response) {
         if (completed) {
-            Logger.getLogger(Get.class.getName()).log(Level.INFO, "Authentication completed!");
-            JetHandler jetHandler = new JetHandler(peer);
-            Matcher matcher = new Matcher();
-            matcher.startsWith = "theState";
-            peer.get(matcher, jetHandler, 5000);
+            Logger.getLogger(Passwd.class.getName()).log(Level.INFO, "Passwd Config completed!");
+            AuthHandler authHandler = new AuthHandler(peer);
+            peer.authenticate("john-admin", "doe", authHandler, 5000);
         } else {
-            Logger.getLogger(Get.class.getName()).log(Level.SEVERE, "Get Config failed!");
+            Logger.getLogger(Passwd.class.getName()).log(Level.SEVERE, "Passwd Config failed!");
         }
     }
 }
@@ -109,11 +127,11 @@ class ConnectionHandler implements ConnectionCompleted {
     @Override
     public void completed(boolean success) {
         if (success) {
-            Logger.getLogger(Get.class.getName()).log(Level.INFO, "Get Connection completed!");
+            Logger.getLogger(Passwd.class.getName()).log(Level.INFO, "Passwd Connection completed!");
             ConfigHandler configHandler = new ConfigHandler(peer);
-            peer.config(Get.class.getName(), configHandler, 5000);
+            peer.config(Passwd.class.getName(), configHandler, 5000);
         } else {
-            Logger.getLogger(Get.class.getName()).log(Level.SEVERE, "Connection failed!");
+            Logger.getLogger(Passwd.class.getName()).log(Level.SEVERE, "Connection failed!");
         }
     }
 }
