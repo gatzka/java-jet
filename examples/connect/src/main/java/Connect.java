@@ -25,11 +25,9 @@
 import com.hbm.devices.jet.ConnectionCompleted;
 import com.hbm.devices.jet.JetConnection;
 import com.hbm.devices.jet.JetPeer;
-import com.hbm.devices.jet.NaiveSSLContext;
 import com.hbm.devices.jet.Peer;
 import com.hbm.devices.jet.WebsocketJetConnection;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.SSLContext;
@@ -37,32 +35,27 @@ import javax.net.ssl.SSLContext;
 public class Connect {
 
     public static void main(String[] args) {
-        try {
-            SSLContext context = NaiveSSLContext.getInstance("TLS");
-            JetConnection connection = new WebsocketJetConnection("ws://cjet-raspi", context);
-            Peer peer = new JetPeer(connection);
-            peer.connect(new ConnectionCompleted() {
-                @Override
-                public void completed(boolean success) {
-                    if (success) {
-                        Logger.getLogger(Connect.class.getName()).log(Level.INFO, "Change Connection completed!");
-                    } else {
-                        Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, "Connection failed!");
-                    }
+        JetConnection connection = new WebsocketJetConnection("ws://cjet-raspi");
+        Peer peer = new JetPeer(connection);
+        peer.connect(new ConnectionCompleted() {
+            @Override
+            public void completed(boolean success) {
+                if (success) {
+                    Logger.getLogger(Connect.class.getName()).log(Level.INFO, "Change Connection completed!");
+                } else {
+                    Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, "Connection failed!");
                 }
-            }, 5000);
+            }
+        }, 5000);
 
-            try {
-                System.in.read();
-            } catch (IOException ex) {
-                Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            try {
-                peer.close();
-            } catch (IOException ex) {
-                Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } catch (NoSuchAlgorithmException ex) {
+        try {
+            System.in.read();
+        } catch (IOException ex) {
+            Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            peer.close();
+        } catch (IOException ex) {
             Logger.getLogger(Connect.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

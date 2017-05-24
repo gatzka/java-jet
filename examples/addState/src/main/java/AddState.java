@@ -29,13 +29,11 @@ import com.hbm.devices.jet.ConnectionCompleted;
 import com.hbm.devices.jet.JetConnection;
 import com.hbm.devices.jet.JetPeer;
 import com.hbm.devices.jet.JsonRpcException;
-import com.hbm.devices.jet.NaiveSSLContext;
 import com.hbm.devices.jet.Peer;
 import com.hbm.devices.jet.ResponseCallback;
 import com.hbm.devices.jet.StateCallback;
 import com.hbm.devices.jet.WebsocketJetConnection;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.SSLContext;
@@ -43,25 +41,19 @@ import javax.net.ssl.SSLContext;
 public class AddState {
 
     public static void main(String[] args) {
-        try {
-            SSLContext context = NaiveSSLContext.getInstance("TLS");
-            //JetConnection connection = new WebsocketJetConnection("ws://localhost:11123", context);
-            JetConnection connection = new WebsocketJetConnection("ws://localhost:11123/api/jet/");
-            Peer peer = new JetPeer(connection);
-            ConnectionHandler handler = new ConnectionHandler(peer);
-            peer.connect(handler, 5000);
+        JetConnection connection = new WebsocketJetConnection("ws://localhost:11123/api/jet/");
+        Peer peer = new JetPeer(connection);
+        ConnectionHandler handler = new ConnectionHandler(peer);
+        peer.connect(handler, 5000);
 
-            try {
-                System.in.read();
-            } catch (IOException ex) {
-                Logger.getLogger(AddState.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            try {
-                peer.close();
-            } catch (IOException ex) {
-                Logger.getLogger(AddState.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } catch (NoSuchAlgorithmException ex) {
+        try {
+            System.in.read();
+        } catch (IOException ex) {
+            Logger.getLogger(AddState.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            peer.close();
+        } catch (IOException ex) {
             Logger.getLogger(AddState.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
