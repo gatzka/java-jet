@@ -39,14 +39,17 @@ public class WebsocketJetConnection extends JetConnection {
     private SSLContext context;
     private ConnectionCompleted completed;
     private boolean connected;
+    private boolean verifyHostname;
 
-    public WebsocketJetConnection(final String url, final SSLContext sslContext) {
+    public WebsocketJetConnection(final String url, final SSLContext sslContext, final boolean verifyHostname) {
         this(url);
+        this.verifyHostname = verifyHostname;
         this.context = sslContext;
     }
 
     public WebsocketJetConnection(final String url) {
         this.url = url;
+        this.verifyHostname = true;
         this.connected = false;
     }
 
@@ -59,6 +62,9 @@ public class WebsocketJetConnection extends JetConnection {
             if (context != null) {
                 factory.setSSLContext(context);
             }
+
+            factory.setVerifyHostname(verifyHostname);
+
             ws = factory.createSocket(url, timeoutMs);
             WebsocketCallbackListener listener = new WebsocketCallbackListener(this);
             ws.addListener(listener);
